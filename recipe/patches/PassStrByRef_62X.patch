@@ -1,0 +1,105 @@
+Index: DataFormats/PatCandidates/src/TriggerEvent.cc
+===================================================================
+RCS file: /cvs_server/repositories/CMSSW/CMSSW/DataFormats/PatCandidates/src/TriggerEvent.cc,v
+retrieving revision 1.18
+diff -r1.18 TriggerEvent.cc
+92c92
+<     const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>     const std::string& nameAlgorithm( iAlgorithm->name() );
+145c145
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+160c160
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+175c175
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+190c190
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+205c205
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+220c220
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+235c235
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+250c250
+<      const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>      const std::string& nameAlgorithm( iAlgorithm->name() );
+264c264
+<    const std::string nameCondition( iCondition->name() );
+---
+>    const std::string& nameCondition( iCondition->name() );
+307c307
+<      const std::string nameCondition( iCondition->name() );
+---
+>      const std::string& nameCondition( iCondition->name() );
+321c321
+<       const std::string namePath( iPath->name() );
+---
+>       const std::string& namePath( iPath->name() );
+364c364
+<      const std::string namePath( iPath->name() );
+---
+>      const std::string& namePath( iPath->name() );
+378c378
+<      const std::string labelFilter( iFilter->label() );
+---
+>      const std::string& labelFilter( iFilter->label() );
+421c421
+<      const std::string labelFilter( iFilter->label() );
+---
+>      const std::string& labelFilter( iFilter->label() );
+487c487
+<     const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>     const std::string& nameAlgorithm( iAlgorithm->name() );
+506c506
+<        std::string objectCollection( objects()->at( iObject ).collection() );
+---
+>        std::string& objectCollection( objects()->at( iObject ).collection() );
+507c507
+<     const std::string nameCondition( iCondition->name() );
+---
+>     const std::string& nameCondition( iCondition->name() );
+523c523
+<     const std::string nameCondition( ( *iCondition )->name() );
+---
+>     const std::string& nameCondition( ( *iCondition )->name() );
+549c549
+<     const std::string nameAlgorithm( iAlgorithm->name() );
+---
+>     const std::string& nameAlgorithm( iAlgorithm->name() );
+566c566
+<        const std::string labelFilter( pathPtr->modules().at( iM ) );
+---
+>        const std::string& labelFilter( pathPtr->modules().at( iM ) );
+606c606
+<     const std::string namePath( iPath->name() );
+---
+>     const std::string& namePath( iPath->name() );
+670c670
+<     const std::string labelFilter( iFilter->label() );
+---
+>     const std::string& labelFilter( iFilter->label() );
+686c686
+<     const std::string labelFilter( ( *iFilter )->label() );
+---
+>     const std::string& labelFilter( ( *iFilter )->label() );
+712c712
+<     const std::string namePath( iPath->name() );
+---
+>     const std::string& namePath( iPath->name() );

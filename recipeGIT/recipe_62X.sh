@@ -76,6 +76,13 @@ then
   patch -N -p0 < FinalStateAnalysis/recipe/patches/Egamma_PassAll.patch
   set -o errexit
 
+  # Add and patch to way speed up trigger matching
+  # Don't crash if patch already applied.
+  set +o errexit
+  echo "Applying pat trigger matching speedup"
+  patch -N -p0 < FinalStateAnalysis/recipe/patches/PassStrByRef_62X_test.patch
+  set -o errexit
+
   #Get weight files
   pushd $CMSSW_BASE/src/EgammaAnalysis/ElectronTools/data
   cat download.url | xargs wget

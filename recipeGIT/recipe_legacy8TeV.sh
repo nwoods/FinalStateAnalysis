@@ -93,6 +93,14 @@ then
   set +o errexit
   patch -N -p0 < FinalStateAnalysis/recipe/patches/PhysicsToolsPatAlgos_fix_btags_52X.patch
   set -o errexit
+
+  # Add and patch to way speed up trigger matching
+  # Don't crash if patch already applied.
+  set +o errexit
+  echo "Applying pat trigger matching speedup"
+  patch -N -p0 < FinalStateAnalysis/recipe/patches/V06-04-16_DataFormats_PatCandidates_PassStrByRef.patch
+  set -o errexit
+
 fi
 
 popd
