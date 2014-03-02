@@ -35,11 +35,11 @@ diff -r1.18 TriggerEvent.cc
 <     const std::string nameAlgorithm( iAlgorithm->name() );
 ---
 >     const std::string& nameAlgorithm( iAlgorithm->name() );
-566c566
+606c606
 <        const std::string labelFilter( pathPtr->modules().at( iM ) );
 ---
 >        const std::string& labelFilter( pathPtr->modules().at( iM ) );
-606c606
+613c613
 <     const std::string namePath( iPath->name() );
 ---
 >     const std::string& namePath( iPath->name() );
