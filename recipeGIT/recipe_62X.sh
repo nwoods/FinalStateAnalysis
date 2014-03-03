@@ -80,7 +80,7 @@ then
   # Don't crash if patch already applied.
   set +o errexit
   echo "Applying pat trigger matching speedup"
-  patch -N -p0 < FinalStateAnalysis/recipe/patches/PassStrByRef_62X_test.patch
+  patch -N -p0 < FinalStateAnalysis/recipe/patches/PassStrByRef_62X_all.patch
   set -o errexit
 
   #Get weight files
