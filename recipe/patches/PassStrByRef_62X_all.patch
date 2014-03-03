@@ -1,0 +1,218 @@
+--- DataFormats/PatCandidates/src/TriggerEvent.cc 2014-03-02 17:12:18.000000001 -0600
++++ DataFormats/PatCandidates/src/TriggerEvent.cc.corrected	2014-03-02 17:38:17.000000001 -0600
+@@ -89,7 +89,7 @@
+ {
+   TriggerAlgorithmRefVector theAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+-    const std::string nameAlgorithm( iAlgorithm->name() );
++    const std::string& nameAlgorithm( iAlgorithm->name() );
+     const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+     theAlgorithms.push_back( algorithmRef );
+   }
+@@ -142,7 +142,7 @@
+   TriggerAlgorithmRefVector theAcceptedAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( iAlgorithm->decision() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theAcceptedAlgorithms.push_back( algorithmRef );
+     }
+@@ -157,7 +157,7 @@
+   TriggerAlgorithmRefVector theAcceptedAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( iAlgorithm->gtlResult() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theAcceptedAlgorithms.push_back( algorithmRef );
+     }
+@@ -172,7 +172,7 @@
+   TriggerAlgorithmRefVector theTechAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( iAlgorithm->techTrigger() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theTechAlgorithms.push_back( algorithmRef );
+     }
+@@ -187,7 +187,7 @@
+   TriggerAlgorithmRefVector theAcceptedTechAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( iAlgorithm->techTrigger() && iAlgorithm->decision() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theAcceptedTechAlgorithms.push_back( algorithmRef );
+     }
+@@ -202,7 +202,7 @@
+   TriggerAlgorithmRefVector theAcceptedTechAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( iAlgorithm->techTrigger() && iAlgorithm->gtlResult() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theAcceptedTechAlgorithms.push_back( algorithmRef );
+     }
+@@ -217,7 +217,7 @@
+   TriggerAlgorithmRefVector thePhysAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( ! iAlgorithm->techTrigger() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       thePhysAlgorithms.push_back( algorithmRef );
+     }
+@@ -232,7 +232,7 @@
+   TriggerAlgorithmRefVector theAcceptedPhysAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( ! iAlgorithm->techTrigger() && iAlgorithm->decision() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theAcceptedPhysAlgorithms.push_back( algorithmRef );
+     }
+@@ -247,7 +247,7 @@
+   TriggerAlgorithmRefVector theAcceptedPhysAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+     if ( ! iAlgorithm->techTrigger() && iAlgorithm->gtlResult() ) {
+-      const std::string nameAlgorithm( iAlgorithm->name() );
++      const std::string& nameAlgorithm( iAlgorithm->name() );
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theAcceptedPhysAlgorithms.push_back( algorithmRef );
+     }
+@@ -261,7 +261,7 @@
+ {
+   TriggerConditionRefVector theConditions;
+   for ( TriggerConditionCollection::const_iterator iCondition = conditions()->begin(); iCondition != conditions()->end(); ++iCondition ) {
+-    const std::string nameCondition( iCondition->name() );
++    const std::string& nameCondition( iCondition->name() );
+     const TriggerConditionRef conditionRef( conditions_, indexCondition( nameCondition ) );
+     theConditions.push_back( conditionRef );
+   }
+@@ -304,7 +304,7 @@
+   TriggerConditionRefVector theAcceptedConditions;
+   for ( TriggerConditionCollection::const_iterator iCondition = conditions()->begin(); iCondition != conditions()->end(); ++iCondition ) {
+     if ( iCondition->wasAccept() ) {
+-      const std::string nameCondition( iCondition->name() );
++      const std::string& nameCondition( iCondition->name() );
+       const TriggerConditionRef conditionRef( conditions_, indexCondition( nameCondition ) );
+       theAcceptedConditions.push_back( conditionRef );
+     }
+@@ -318,7 +318,7 @@
+ {
+   TriggerPathRefVector thePaths;
+   for ( TriggerPathCollection::const_iterator iPath = paths()->begin(); iPath != paths()->end(); ++iPath ) {
+-    const std::string namePath( iPath->name() );
++    const std::string& namePath( iPath->name() );
+     const TriggerPathRef pathRef( paths_, indexPath( namePath ) );
+     thePaths.push_back( pathRef );
+   }
+@@ -361,7 +361,7 @@
+   TriggerPathRefVector theAcceptedPaths;
+   for ( TriggerPathCollection::const_iterator iPath = paths()->begin(); iPath != paths()->end(); ++iPath ) {
+     if ( iPath->wasAccept() ) {
+-      const std::string namePath( iPath->name() );
++      const std::string& namePath( iPath->name() );
+       const TriggerPathRef pathRef( paths_, indexPath( namePath ) );
+       theAcceptedPaths.push_back( pathRef );
+     }
+@@ -375,7 +375,7 @@
+ {
+   TriggerFilterRefVector theFilters;
+   for ( TriggerFilterCollection::const_iterator iFilter = filters()->begin(); iFilter != filters()->end(); ++iFilter ) {
+-    const std::string labelFilter( iFilter->label() );
++    const std::string& labelFilter( iFilter->label() );
+     const TriggerFilterRef filterRef( filters_, indexFilter( labelFilter ) );
+     theFilters.push_back( filterRef );
+   }
+@@ -418,7 +418,7 @@
+   TriggerFilterRefVector theAcceptedFilters;
+   for ( TriggerFilterCollection::const_iterator iFilter = filters()->begin(); iFilter != filters()->end(); ++iFilter ) {
+     if ( iFilter->status() == 1 ) {
+-      const std::string labelFilter( iFilter->label() );
++      const std::string& labelFilter( iFilter->label() );
+       const TriggerFilterRef filterRef( filters_, indexFilter( labelFilter ) );
+       theAcceptedFilters.push_back( filterRef );
+     }
+@@ -484,7 +484,7 @@
+   TriggerAlgorithmRefVector theConditionAlgorithms;
+   size_t cAlgorithms( 0 );
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+-    const std::string nameAlgorithm( iAlgorithm->name() );
++    const std::string& nameAlgorithm( iAlgorithm->name() );
+     if ( conditionInAlgorithm( conditionRef, nameAlgorithm ) ) {
+       const TriggerAlgorithmRef algorithmRef( algorithms_, cAlgorithms );
+       theConditionAlgorithms.push_back( algorithmRef );
+@@ -548,7 +548,7 @@
+ {
+   TriggerConditionRefVector theObjectConditions;
+   for ( TriggerConditionCollection::const_iterator iCondition = conditions()->begin(); iCondition != conditions()->end(); ++iCondition ) {
+-    const std::string nameCondition( iCondition->name() );
++    const std::string& nameCondition( iCondition->name() );
+     if ( objectInCondition( objectRef, nameCondition ) ) {
+       const TriggerConditionRef conditionRef( conditions_, indexCondition( nameCondition ) );
+       theObjectConditions.push_back( conditionRef );
+@@ -564,7 +564,7 @@
+   TriggerObjectRefVector    theAlgorithmObjects;
+   TriggerConditionRefVector theConditions = algorithmConditions( nameAlgorithm );
+   for ( TriggerConditionRefVectorIterator iCondition = theConditions.begin(); iCondition != theConditions.end(); ++iCondition ) {
+-    const std::string nameCondition( ( *iCondition )->name() );
++    const std::string& nameCondition( ( *iCondition )->name() );
+     TriggerObjectRefVector theObjects = conditionObjects( nameCondition );
+     for ( TriggerObjectRefVectorIterator iObject = theObjects.begin(); iObject != theObjects.end(); ++iObject ) {
+       theAlgorithmObjects.push_back( *iObject );
+@@ -590,7 +590,7 @@
+ {
+   TriggerAlgorithmRefVector theObjectAlgorithms;
+   for ( TriggerAlgorithmCollection::const_iterator iAlgorithm = algorithms()->begin(); iAlgorithm != algorithms()->end(); ++iAlgorithm ) {
+-    const std::string nameAlgorithm( iAlgorithm->name() );
++    const std::string& nameAlgorithm( iAlgorithm->name() );
+     if ( objectInAlgorithm( objectRef, nameAlgorithm ) ) {
+       const TriggerAlgorithmRef algorithmRef( algorithms_, indexAlgorithm( nameAlgorithm ) );
+       theObjectAlgorithms.push_back( algorithmRef );
+@@ -608,7 +608,7 @@
+     if ( pathPtr->modules().size() > 0 ) {
+       const unsigned onePastLastFilter = all ? pathPtr->modules().size() : pathPtr->lastActiveFilterSlot() + 1;
+       for ( unsigned iM = 0; iM < onePastLastFilter; ++iM ) {
+-        const std::string labelFilter( pathPtr->modules().at( iM ) );
++        const std::string& labelFilter( pathPtr->modules().at( iM ) );
+         const TriggerFilterRef filterRef( filters_, indexFilter( labelFilter ) );
+         thePathFilters.push_back( filterRef );
+       }
+@@ -649,7 +649,7 @@
+   TriggerPathRefVector theFilterPaths;
+   size_t cPaths( 0 );
+   for ( TriggerPathCollection::const_iterator iPath = paths()->begin(); iPath != paths()->end(); ++iPath ) {
+-    const std::string namePath( iPath->name() );
++    const std::string& namePath( iPath->name() );
+     if ( filterInPath( filterRef, namePath, firing ) ) {
+       const TriggerPathRef pathRef( paths_, cPaths );
+       theFilterPaths.push_back( pathRef );
+@@ -713,7 +713,7 @@
+ {
+   TriggerFilterRefVector theObjectFilters;
+   for ( TriggerFilterCollection::const_iterator iFilter = filters()->begin(); iFilter != filters()->end(); ++iFilter ) {
+-    const std::string labelFilter( iFilter->label() );
++    const std::string& labelFilter( iFilter->label() );
+     if ( objectInFilter( objectRef, labelFilter ) ) {
+       const TriggerFilterRef filterRef( filters_, indexFilter( labelFilter ) );
+       if ( ( ! firing ) || iFilter->isFiring() ) theObjectFilters.push_back( filterRef );
+@@ -729,7 +729,7 @@
+   TriggerObjectRefVector thePathObjects;
+   TriggerFilterRefVector theFilters = pathFilters( namePath, firing );
+   for ( TriggerFilterRefVectorIterator iFilter = theFilters.begin(); iFilter != theFilters.end(); ++iFilter ) {
+-    const std::string labelFilter( ( *iFilter )->label() );
++    const std::string& labelFilter( ( *iFilter )->label() );
+     TriggerObjectRefVector theObjects = filterObjects( labelFilter );
+     for ( TriggerObjectRefVectorIterator iObject = theObjects.begin(); iObject != theObjects.end(); ++iObject ) {
+       thePathObjects.push_back( *iObject );
+@@ -755,7 +755,7 @@
+ {
+   TriggerPathRefVector theObjectPaths;
+   for ( TriggerPathCollection::const_iterator iPath = paths()->begin(); iPath != paths()->end(); ++iPath ) {
+-    const std::string namePath( iPath->name() );
++    const std::string& namePath( iPath->name() );
+     if ( objectInPath( objectRef, namePath, firing ) ) {
+       const TriggerPathRef pathRef( paths_, indexPath( namePath ) );
+       theObjectPaths.push_back( pathRef );
