@@ -71,7 +71,7 @@ id = PSet(
     objectIsTracker = '{object}.isTrackerMuon',
     objectTypeCode = cms.vstring('{object}.type','I'),
     objectGenMotherPdgId = '? (getDaughterGenParticleMotherSmart({object_idx}, 13, 1).isAvailable && getDaughterGenParticleMotherSmart({object_idx}, 13, 1).isNonnull) ? getDaughterGenParticleMotherSmart({object_idx}, 13, 1).pdgId() : -999',
-    objectGenMotherMass = '? (getDaughterGenParticleMotherSmart({object_idx}, 13, 0).isAvailable && getDaughterGenParticleMotherSmart({object_idx}, 13, 0).isNonnull) ? getDaughterGenParticleMotherSmart({object_idx}, 13, 0).M() : -999',
+    objectGenMotherMass = '? (getDaughterGenParticleMotherSmart({object_idx}, 13, 0).isAvailable && getDaughterGenParticleMotherSmart({object_idx}, 13, 0).isNonnull) ? getDaughterGenParticleMotherSmart({object_idx}, 13, 0).mass() : -999',
     objectComesFromHiggs = 'comesFromHiggs({object_idx}, 13, 1)',
 
     objectGenPdgId       = '? (getDaughterGenParticle({object_idx}, 13, 0).isAvailable && getDaughterGenParticle({object_idx}, 13, 0).isNonnull) ? getDaughterGenParticle({object_idx}, 13, 0).pdgId() : -999',
