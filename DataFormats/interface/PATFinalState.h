@@ -342,6 +342,12 @@ class PATFinalState : public pat::PATObject<reco::LeafCandidate> {
     // or -999 if one doesn't exist
     const float dijetMass(const size_t i, const size_t j) const;
 
+    // Get the daughter's 4-momentum with a usercand included if it exists
+    LorentzVector daughterP4WithUserCand(const size_t i, const std::string& label) const;
+
+    // Get the final state's P4 with a usercand included from all daughters that have it
+    LorentzVector p4WithUserCands(const std::string& label) const;
+
   private:
     edm::Ptr<PATFinalStateEvent> event_;
 };

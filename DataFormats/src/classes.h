@@ -22,6 +22,8 @@
 
 #include "FinalStateAnalysis/DataFormats/interface/Macros.h"
 
+#include "DataFormats/Candidate/interface/ShallowClonePtrCandidate.h"
+
 namespace {
   struct FinalStateAnalysis_DataFormats_dicts {
     // General missing dictionaries
@@ -41,6 +43,11 @@ namespace {
     std::pair<std::string, float> dummyFloatPair;
     std::pair<std::string, int> dummyIntPair;
     std::map<std::string, edm::Ptr<pat::MET> > dummyMETMap;
+
+    reco::ShallowClonePtrCandidate dummyShallowClonePtrCand;
+    edm::Wrapper<reco::ShallowClonePtrCandidate> dummyShallowClonePtrCandWrapper;
+    std::vector<reco::ShallowClonePtrCandidate> dummyShallowClonePtrCandVector;
+    edm::Wrapper<std::vector<reco::ShallowClonePtrCandidate> > dummyShallowClonePtrCandVectorWrapper;
 
     // For the VBF variables
     VBFVariables dummyVBFVars;

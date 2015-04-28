@@ -389,6 +389,10 @@
   <class name="PATMuMuPhoPhoFinalStateCollection"/>
   <class name="edm::Wrapper<PATMuMuPhoPhoFinalStateCollection>"/>
 
+  <class name="reco::ShallowClonePtrCandidate"/>
+  <class name="edm::Wrapper<reco::ShallowClonePtrCandidate>"/>
+  <class name="std::vector<reco::ShallowClonePtrCandidate>"/>
+  <class name="edm::Wrapper<std::vector<reco::ShallowClonePtrCandidate> >"/>
 
 </selection>
 

@@ -1123,7 +1123,6 @@ const bool PATFinalState::genVtxPVMatch(const size_t i) const
   return true;
 }
 
-
 // Get the invariant mass of the ith and jth jet in the event
 const float PATFinalState::dijetMass(const size_t i, const size_t j) const
 {
@@ -1131,6 +1130,25 @@ const float PATFinalState::dijetMass(const size_t i, const size_t j) const
     return -999.;
 
   return (evt()->jets().at(i).p4() + evt()->jets().at(j).p4()).M();
+}
+
+PATFinalState::LorentzVector PATFinalState::daughterP4WithUserCand(size_t i, const std::string& label) const
+{
+  LorentzVector out = daughter(i)->p4();
+  if(daughterHasUserCand(i, label))
+    out += daughterUserCandP4(i, label);
+
+  return out;
+}
+
+
+PATFinalState::LorentzVector PATFinalState::p4WithUserCands(const std::string& label) const
+{
+  LorentzVector out = LorentzVector();
+  for(size_t i = 0; i < numberOfDaughters(); ++i)
+    out += daughterP4WithUserCand(i, label);
+
+  return out;
 }
 
 
