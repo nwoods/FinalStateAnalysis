@@ -502,65 +502,8 @@ if options.hzz:
         )
     fs_daughter_inputs['akfsr'] = 'cleanAKFSR'
 
-    # process.cleanAKFSR = cms.EDFilter(
-    #     "MiniAODAKFSRCleaner",
-    #     src = cms.InputTag(fs_daughter_inputs['akfsr']),
-    #     eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
-    #     muSrc = cms.InputTag(fs_daughter_inputs['muons']),
-    #     isoCut = cms.double(1.),
-    #     selection = cms.string("abs(eta) < 2.4 & pt > 2"),
-    #     eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     isoSrc = cms.VInputTag(
-    #        cms.InputTag("akFSRChHadIso"),
-    #        cms.InputTag("akFSRNHadPhoIso"),
-    #        ),
-    #     )
-    # fs_daughter_inputs['akfsr'] = 'cleanAKFSR'
-
-    # process.fsrCandLeptonAdding = cms.EDProducer(
-    #     "PFCollectionLeptonAdder",
-    #     src = cms.InputTag(fs_daughter_inputs['fsr']),
-    #     selection = cms.string('pt > 2. && abs(eta) < 2.4 && '
-    #                            '(userFloat("fsrPhotonPFIsoChHadPUNoPU03pt02")+userFloat("fsrPhotonPFIsoNHadPhoton03"))/pt < 1.'),
-    #     eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
-    #     eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     muSrc = cms.InputTag(fs_daughter_inputs['muons']),
-    #     muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     )
-    # fs_daughter_inputs['akfsr'] = 'fsrCandLeptonAdding'
-    # output_commands.append('*_fsrCandLeptonAdding_*_*')
-    # from RecoJets.JetProducers.AnomalousCellParameters_cfi import *
-    # process.akFSRClustering0p3 = cms.EDProducer(
-    #     "FastjetJetProducer",
-    #     AnomalousCellParameters,
-    #     src = cms.InputTag(fs_daughter_inputs['akfsr']),
-    #     jetType = cms.string("PFJet"),
-    #     jetPtMin = cms.double(10.),
-    #     jetAlgorithm = cms.string("AntiKt"),
-    #     rParam = cms.double(0.3),
-    #     srcPVs = cms.InputTag(''),
-    #     inputEtMin = cms.double(0.0),
-    #     inputEMin = cms.double(0.0),
-    #     doPVCorrection = cms.bool(False),
-    #     doPUOffsetCorr = cms.bool(False),
-    #     doAreaFastjet = cms.bool(False),
-    #     doRhoFastjet = cms.bool(False),
-    #     doAreaDiskApprox = cms.bool(False),
-    #     )
-    # process.akFSRClustering0p5 = process.akFSRClustering0p3.clone(rParam=cms.double(0.5))
-    # process.akFSRClustering0p1 = process.akFSRClustering0p3.clone(rParam=cms.double(0.1))
-    # process.makeAKFSRClusters = cms.Sequence(
-    #     process.fsrCandLeptonAdding *
-    #     process.akFSRClustering0p3 *
-    #     process.akFSRClustering0p5 *
-    #     process.akFSRClustering0p1
-    #     )
-    # process.akFSRClusterPath = cms.Path(process.makeAKFSRClusters)
-    # process.schedule.append(process.akFSRClusterPath)
                                 
     # Find the best photon in the same lepton/photon "jet" as each lepton and embed it as FSR
-
     from RecoJets.JetProducers.AnomalousCellParameters_cfi import *
     process.akFSRClustering0p3 = cms.EDProducer(
         "FastjetJetProducer",
