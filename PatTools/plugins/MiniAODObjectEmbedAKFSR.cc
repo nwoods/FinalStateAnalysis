@@ -109,8 +109,13 @@ void MiniAODObjectEmbedAKFSR<T>::produce(
           if(thisJet.isAvailable() && thisJet.isNonnull())
             break;
         }
+
+      // If the lepton isn't in a jet, there's nothing more to do
       if(!(thisJet.isAvailable() && thisJet.isNonnull()))
-        continue;
+        {
+          output->push_back(lep);
+          continue;
+        }
 
       // get all photons, and all other leptons (which might be closer to a photon) from the jet
       std::vector<CandPtr> photons = std::vector<CandPtr>();
