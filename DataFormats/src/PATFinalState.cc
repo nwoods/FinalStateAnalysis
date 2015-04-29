@@ -1132,13 +1132,20 @@ const float PATFinalState::dijetMass(const size_t i, const size_t j) const
   return (evt()->jets().at(i).p4() + evt()->jets().at(j).p4()).M();
 }
 
-PATFinalState::LorentzVector PATFinalState::daughterP4WithUserCand(size_t i, const std::string& label) const
+PATFinalState::LorentzVector PATFinalState::daughterP4WithUserCand(const size_t i, const std::string& label) const
 {
   LorentzVector out = daughter(i)->p4();
+
   if(daughterHasUserCand(i, label))
-    out += daughterUserCandP4(i, label);
+      out += daughterUserCandP4(i, label);
 
   return out;
+}
+
+
+PATFinalState::LorentzVector PATFinalState::diObjectP4WithUserCands(const size_t i, const size_t j, const std::string&label) const
+{
+  return (daughterP4WithUserCand(i, label) + daughterP4WithUserCand(j, label));
 }
 
 

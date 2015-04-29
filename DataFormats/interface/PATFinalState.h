@@ -345,6 +345,9 @@ class PATFinalState : public pat::PATObject<reco::LeafCandidate> {
     // Get the daughter's 4-momentum with a usercand included if it exists
     LorentzVector daughterP4WithUserCand(const size_t i, const std::string& label) const;
 
+    // Z (or whatever) candidate 4-momentum with usercands included if they exist
+    LorentzVector diObjectP4WithUserCands(const size_t i, const size_t j, const std::string& label) const;
+
     // Get the final state's P4 with a usercand included from all daughters that have it
     LorentzVector p4WithUserCands(const std::string& label) const;
 

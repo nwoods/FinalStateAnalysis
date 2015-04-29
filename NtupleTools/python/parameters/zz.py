@@ -13,32 +13,26 @@ zzEvVars = PSet()
 zzObjVars = PSet()
 zzDiObjVars = PSet()
 
-doneYet = False
-if not doneYet:
-    for dR in [1, 3, 5]:
-        for fsrVar in ['pt', 'eta', 'phi']:
-            varCap = fsrVar[0].upper()+fsrVar[1:]
-            setattr(zzObjVars, "objectAK%dFSR%s"%(dR, varCap), 
-                    cms.string('({object}.hasUserCand("akFSRCand0p%d") ? {object}.userCand("akFSRCand0p%d").%s : -999.)'%(dR, dR, fsrVar)))
-                
-            setattr(zzDiObjVars, "object1_object2_%sAK%dFSR"%(varCap, dR), 
-                    cms.string(('(daughterP4WithUserCand({object1_idx}, "akFSRCand0p%d") + ' +
-                                'daughterP4WithUserCand({object2_idx}, "akFSRCand0p%d")).%s')%(dR, dR, varCap))
-                    )
-    
-            setattr(zzEvVars, '%sAK%dFSR'%(varCap, dR),
-                    cms.string('p4WithUserCands("akFSRCand0p%d").%s'%(dR, varCap)))
-    
-        setattr(zzDiObjVars, "object1_object2_MassAK%dFSR"%(dR), 
-                cms.string(('(daughterP4WithUserCand({object1_idx}, "akFSRCand0p%d") + ' +
-                            'daughterP4WithUserCand({object2_idx}, "akFSRCand0p%d")).M')%(dR, dR))
+for dR in [1, 3, 5]:
+    for fsrVar in ['pt', 'eta', 'phi']:
+        varCap = fsrVar[0].upper()+fsrVar[1:]
+        setattr(zzObjVars, "objectAK%dFSR%s"%(dR, varCap), 
+                cms.string(('? daughterHasUserCand({object_idx}, "akFSRCand0p%d") ? ' +
+                            'daughterUserCand({object_idx}, "akFSRCand0p%d").%s() : -999.')%(dR, dR, fsrVar)))
+            
+        setattr(zzDiObjVars, "object1_object2_%sAK%dFSR"%(varCap, dR), 
+                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand0p%d").%s')%(dR, fsrVar))
                 )
-    
-        setattr(zzEvVars, 'MassAK%dFSR'%(dR),
-                cms.string('p4WithUserCands("akFSRCand0p%d").M'%(dR)))
 
-    doneYet = True
+        setattr(zzEvVars, '%sAK%dFSR'%(varCap, dR),
+                cms.string('p4WithUserCands("akFSRCand0p%d").%s'%(dR, varCap)))
 
+    setattr(zzDiObjVars, "object1_object2_MassAK%dFSR"%(dR), 
+                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand0p%d").M')%(dR))
+                )
+
+    setattr(zzEvVars, 'MassAK%dFSR'%(dR),
+            cms.string('p4WithUserCands("akFSRCand0p%d").M'%(dR)))
 
 parameters = {
     # selections on all objects whether they're included in final states or not, done immediately after necessary variables are embedded
