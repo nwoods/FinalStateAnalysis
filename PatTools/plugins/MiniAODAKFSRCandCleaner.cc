@@ -38,8 +38,10 @@ typedef reco::Candidate Cand;
 typedef edm::Ptr<Cand> CandPtr;
 typedef reco::CandidateView CandView;
 typedef pat::Electron Elec;
+typedef edm::Ptr<pat::Electron> ElecPtr;
 typedef edm::View<pat::Electron> ElecView;
 typedef pat::Muon Muon;
+typedef edm::Ptr<pat::Muon> MuonPtr;
 typedef edm::View<pat::Muon> MuonView;
 typedef reco::ShallowClonePtrCandidate CandClone;
 
@@ -55,12 +57,17 @@ private:
   edm::EDGetTokenT<ElecView> electrons_;
   edm::EDGetTokenT<MuonView> muons_;
   std::vector<edm::EDGetTokenT<edm::ValueMap<float> > > isoMaps_;
+
+  bool isInSuperCluster(const CandPtr& cand, const std::vector<ElecPtr>& elecs) const;
   
   StringCutObjectSelector<Cand> selection_;
   StringCutObjectSelector<Elec> eSelection_;
   StringCutObjectSelector<Muon> mSelection_;
 
   const float isoCut_;
+  const float scVetoDR_;
+  const float scVetoDEta_;
+  const float scVetoDPhi_;
 };
 
 
@@ -79,7 +86,16 @@ MiniAODAKFSRCandCleaner::MiniAODAKFSRCandCleaner(const edm::ParameterSet& iConfi
 	      ""),
   isoCut_(iConfig.exists("relIsoCut") ?
           float(iConfig.getParameter<double>("relIsoCut")) :
-          1.)
+          1.),
+  scVetoDR_(iConfig.exists("scVetoDR") ?
+            float(iConfig.getParameter<double>("scVetoDR")) :
+            0.15),
+  scVetoDEta_(iConfig.exists("scVetoDEta") ?
+              float(iConfig.getParameter<double>("scVetoDEta")) :
+              0.05),
+  scVetoDPhi_(iConfig.exists("scVetoDPhi") ?
+            float(iConfig.getParameter<double>("scVetoDPhi")) :
+            2.)
 {
   std::vector<edm::InputTag> isoTags = (iConfig.exists("isolations") ?
                                         iConfig.getParameter<std::vector<edm::InputTag> >("isoSrc") :
@@ -115,6 +131,15 @@ void MiniAODAKFSRCandCleaner::produce(edm::Event& iEvent, const edm::EventSetup&
   for(size_t i = 0; i < isoMaps.size(); ++i)
     iEvent.getByToken(isoMaps_.at(i), isoMaps.at(i));
 
+  // get a cleaned electron collection because we need it for the SC veto anyway
+  std::vector<ElecPtr> cleanedElectrons;
+  for(size_t iE = 0; iE < electrons->size(); ++iE)
+    {
+      ElecPtr elec = electrons->ptrAt(iE);
+      if(eSelection_(*elec))
+        cleanedElectrons.push_back(elec);
+    }
+
   for( size_t iCand = 0; iCand != cands->size(); ++iCand )
     {
       CandPtr cand = cands->ptrAt(iCand);
@@ -135,6 +160,10 @@ void MiniAODAKFSRCandCleaner::produce(edm::Event& iEvent, const edm::EventSetup&
           // cut on relative isolation
           if((iso / cand->pt()) > isoCut_)
             continue;
+
+          // supercluster veto
+          if(isInSuperCluster(cand, cleanedElectrons))
+            continue;
         }
       else
         {
@@ -142,11 +171,12 @@ void MiniAODAKFSRCandCleaner::produce(edm::Event& iEvent, const edm::EventSetup&
           bool keep = false;
           if(id == 11)
             {
-              for(auto iLep = electrons->begin(); iLep != electrons->end(); ++iLep)
+              for(auto iLep = cleanedElectrons.begin(); iLep != cleanedElectrons.end(); ++iLep)
                 {
-                  if(iLep->sourceCandidatePtr(0) == cand)
+                  if((*iLep)->sourceCandidatePtr(0) == cand)
                     {
-                      keep = eSelection_(*iLep);
+                      // already working from a selected collection for electrons
+                      keep = true;
                       break;
                     }
                 }
@@ -172,6 +202,25 @@ void MiniAODAKFSRCandCleaner::produce(edm::Event& iEvent, const edm::EventSetup&
     }
 
   iEvent.put( out );
+}
+
+
+bool MiniAODAKFSRCandCleaner::isInSuperCluster(const CandPtr& cand, 
+                                               const std::vector<ElecPtr>& elecs) const
+{
+  for(auto elec = elecs.begin(); elec != elecs.end(); ++elec)
+    {
+      float dR = reco::deltaR(cand->eta(), cand->phi(), (*elec)->superCluster()->eta(), (*elec)->superCluster()->phi());
+      if(dR < scVetoDR_)
+        return true;
+
+      float dEta = fabs((*elec)->superCluster()->eta() - cand->eta());
+      float dPhi = fabs(reco::deltaPhi((*elec)->superCluster()->phi(), cand->phi()));
+      if(dEta < scVetoDEta_ && dPhi < scVetoDPhi_)
+        return true;
+    }
+
+  return false;
 }
 
 
