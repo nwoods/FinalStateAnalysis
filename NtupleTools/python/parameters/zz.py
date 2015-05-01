@@ -12,27 +12,52 @@ from collections import OrderedDict
 zzEvVars = PSet()
 zzObjVars = PSet()
 zzDiObjVars = PSet()
+eleVars = PSet()
+muVars = PSet()
 
-for dR in [1, 3, 5]:
+for iso in ['', 'LooseIso', 'NIso']:
     for fsrVar in ['pt', 'eta', 'phi']:
         varCap = fsrVar[0].upper()+fsrVar[1:]
-        setattr(zzObjVars, "objectAK%dFSR%s"%(dR, varCap), 
-                cms.string(('? daughterHasUserCand({object_idx}, "akFSRCand0p%d") ? ' +
-                            'daughterUserCand({object_idx}, "akFSRCand0p%d").%s() : -999.')%(dR, dR, fsrVar)))
+        setattr(zzObjVars, "objectAKFSR%s%s"%(iso, varCap), 
+                cms.string(('? daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
+                            'daughterUserCand({object_idx}, "akFSRCand%s").%s() : -999.')%(iso, iso, fsrVar)))
             
-        setattr(zzDiObjVars, "object1_object2_%sAK%dFSR"%(varCap, dR), 
-                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand0p%d").%s')%(dR, fsrVar))
+        setattr(zzDiObjVars, "object1_object2_%sAKFSR%s"%(varCap, iso), 
+                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand%s").%s')%(iso, fsrVar))
                 )
 
-        setattr(zzEvVars, '%sAK%dFSR'%(varCap, dR),
-                cms.string('p4WithUserCands("akFSRCand0p%d").%s'%(dR, varCap)))
+        setattr(zzEvVars, '%sAKFSR%s'%(varCap, iso),
+                cms.string('p4WithUserCands("akFSRCand%s").%s'%(iso, varCap)))
 
-    setattr(zzDiObjVars, "object1_object2_MassAK%dFSR"%(dR), 
-                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand0p%d").M')%(dR))
+        setattr(eleVars, "objectRelPFIsoRhoAKFSR%s"%iso,
+                cms.string(('({object}.chargedHadronIso()' +
+                            '+max(0.0,{object}.neutralHadronIso()' +
+                            '+{object}.photonIso()' +
+                            '-(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
+                            'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
+                            '0.)' +
+                            '-{object}.userFloat("rhoCSA14")*{object}.userFloat("EffectiveArea_HZZ4l2015")))' +
+                            '/{object}.pt()')%(iso, iso))
+                ),
+
+        setattr(muVars, "objectRelPFIsoDBAKFSR%s"%iso,
+                cms.string(('({object}.chargedHadronIso()' +
+                            '+max({object}.photonIso()' +
+                            '-(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
+                            'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
+                            '0.)' +
+                            '+{object}.neutralHadronIso()' +
+                            '-0.5*{object}.puChargedHadronIso,0.0))' +
+                            '/{object}.pt()')%(iso, iso))
                 )
 
-    setattr(zzEvVars, 'MassAK%dFSR'%(dR),
-            cms.string('p4WithUserCands("akFSRCand0p%d").M'%(dR)))
+    setattr(zzDiObjVars, "object1_object2_MassAKFSR%s"%(iso), 
+                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand%s").M')%(iso))
+                )
+
+    setattr(zzEvVars, 'MassAKFSR%s'%(iso),
+            cms.string('p4WithUserCands("akFSRCand%s").M'%(iso)))
+
 
 parameters = {
     # selections on all objects whether they're included in final states or not, done immediately after necessary variables are embedded
@@ -89,8 +114,8 @@ parameters = {
     ),
     # candidates of form: objectVarName = 'string expression for selection'
     'candidateVariables' : zzObjVars,
-    'electronVariables' : PSet(),
-    'muonVariables' : PSet(),
+    'electronVariables' : eleVars,
+    'muonVariables' : muVars,
     'tauVariables' : PSet(),
     'photonVariables' : PSet(),
     'jetVariables' : PSet(),
