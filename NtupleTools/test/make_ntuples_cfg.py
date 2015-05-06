@@ -495,37 +495,6 @@ if options.hzz:
     process.cleanAKFSRLooseIso = process.cleanAKFSR.clone(relIsoCut=cms.double(2.))
     process.cleanAKFSRNIso = process.cleanAKFSR.clone(isoSrc=cms.VInputTag(), relIsoCut=cms.double(999.))
 
-    # process.cleanAKFSRHalfIso = cms.EDProducer(
-    #     "MiniAODAKFSRCandCleaner",
-    #     src = cms.InputTag(fs_daughter_inputs['akfsr']),
-    #     eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
-    #     muSrc = cms.InputTag(fs_daughter_inputs['muons']),
-    #     relIsoCut = cms.double(.5),
-    #     phoSelection = cms.string("abs(eta) < 2.4 & pt > 2"),
-    #     eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     isoSrc = cms.VInputTag(
-    #        cms.InputTag("akFSRChHadIso"),
-    #        cms.InputTag("akFSRNHadPhoIso"),
-    #        ),
-    #     )
-    # fs_daughter_inputs['akfsrHalfIso'] = 'cleanAKFSRHalfIso'
-    # 
-    # process.cleanAKFSRNIso = cms.EDProducer(
-    #     "MiniAODAKFSRCandCleaner",
-    #     src = cms.InputTag(fs_daughter_inputs['akfsr']),
-    #     eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
-    #     muSrc = cms.InputTag(fs_daughter_inputs['muons']),
-    #     relIsoCut = cms.double(999.),
-    #     phoSelection = cms.string("abs(eta) < 2.4 & pt > 2"),
-    #     eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
-    #     isoSrc = cms.VInputTag(
-    #        ),
-    #     )
-    # fs_daughter_inputs['akfsrNIso'] = 'cleanAKFSRNIso'
-
-                                
     # Find the best photon in the same lepton/photon "jet" as each lepton and embed it as FSR
     from RecoJets.JetProducers.AnomalousCellParameters_cfi import *
     process.akFSRClustering = cms.EDProducer(
