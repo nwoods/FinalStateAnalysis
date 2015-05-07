@@ -58,6 +58,12 @@ for iso in ['', 'LooseIso', 'NIso']:
     setattr(zzEvVars, 'MassAKFSR%s'%(iso),
             cms.string('p4WithUserCands("akFSRCand%s").M'%(iso)))
 
+eleVars.objectGenStatus = cms.string(('? (getDaughterGenParticle({object_idx}, 11, 0, 1).isAvailable && ' +
+                                      'getDaughterGenParticle({object_idx}, 11, 0, 1).isNonnull) ? ' +
+                                      'getDaughterGenParticle({object_idx}, 11, 0, 1).status : -999'))
+muVars.objectGenStatus = cms.string(('? (getDaughterGenParticle({object_idx}, 13, 0, 1).isAvailable && ' +
+                                     'getDaughterGenParticle({object_idx}, 13, 0, 1).isNonnull) ? ' +
+                                     'getDaughterGenParticle({object_idx}, 13, 0, 1).status : -999'))
 
 parameters = {
     # selections on all objects whether they're included in final states or not, done immediately after necessary variables are embedded
