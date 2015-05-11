@@ -33,23 +33,26 @@ for iso in ['', 'LooseIso', 'NIso']:
             cms.string(('({object}.chargedHadronIso()' +
                         '+max(0.0,{object}.neutralHadronIso()' +
                         '+{object}.photonIso()' +
-                        '-(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
-                        'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
-                        '0.)' +
+                        '-ptOfDaughterUserCand({object_idx}, "akFSR%s")' +
                         '-{object}.userFloat("rhoCSA14")*{object}.userFloat("EffectiveArea_HZZ4l2015")))' +
-                        '/{object}.pt()')%(iso, iso))
+                        '/{object}.pt()')%(iso))
             ),
+                        # '-(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
+                        # 'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
+                        # '0.)' +
 
     setattr(muVars, "objectRelPFIsoDBAKFSR%s"%iso,
             cms.string(('({object}.chargedHadronIso()' +
                         '+max({object}.photonIso()' +
-                        '-(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
-                        'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
-                        '0.)' +
+                        '-ptOfDaughterUserCand({object_idx}, "akFSRCand%s")' +
                         '+{object}.neutralHadronIso()' +
                         '-0.5*{object}.puChargedHadronIso,0.0))' +
-                        '/{object}.pt()')%(iso, iso))
+                        '/{object}.pt()')%(iso))
             )
+                        # '-1*(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
+                        # 'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
+                        # '0.)' +
+
 
     setattr(zzDiObjVars, "object1_object2_MassAKFSR%s"%(iso), 
                 cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand%s").M')%(iso))

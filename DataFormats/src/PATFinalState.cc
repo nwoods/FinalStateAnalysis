@@ -1159,7 +1159,16 @@ PATFinalState::LorentzVector PATFinalState::p4WithUserCands(const std::string& l
 }
 
 
+const float PATFinalState::ptOfDaughterUserCand(const size_t i, const std::string& label) const
+{
+  if(daughterHasUserCand(i, label))
+    {
+      reco::CandidatePtr uCand = daughterUserCand(i, label);
+      return uCand->pt();
+    }
 
+  return 0.;
+}
 
 
 
