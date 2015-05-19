@@ -492,9 +492,6 @@ if options.hzz:
         )
     fs_daughter_inputs['akfsr'] = 'cleanAKFSR'
 
-    process.cleanAKFSRLooseIso = process.cleanAKFSR.clone(relIsoCut=cms.double(2.))
-    process.cleanAKFSRNIso = process.cleanAKFSR.clone(isoSrc=cms.VInputTag(), relIsoCut=cms.double(999.))
-
     # Find the best photon in the same lepton/photon "jet" as each lepton and embed it as FSR
     from RecoJets.JetProducers.AnomalousCellParameters_cfi import *
     process.akFSRClustering = cms.EDProducer(
@@ -514,20 +511,17 @@ if options.hzz:
         doRhoFastjet = cms.bool(False),
         doAreaDiskApprox = cms.bool(False),
         )
-    process.akFSRClusteringLooseIso = process.akFSRClustering.clone(src=cms.InputTag(fs_daughter_inputs['akfsr']+'LooseIso'))
-    process.akFSRClusteringNIso = process.akFSRClustering.clone(src=cms.InputTag(fs_daughter_inputs['akfsr']+'NIso'))
+    process.akFSRClustering1p5 = process.akFSRClustering.clone(rParam=cms.double(0.15))
     fs_daughter_inputs['akfsr'] = 'akFSRClustering'
+    fs_daughter_inputs['akfsr1p5'] = 'akFSRClustering1p5'
 
     process.makeAKFSRClusters = cms.Sequence(
         process.leptonPhotonSelection *
         process.akFSRChHadIso *
         process.akFSRNHadPhoIso *
         process.cleanAKFSR *
-        process.cleanAKFSRLooseIso *
-        process.cleanAKFSRNIso *
         process.akFSRClustering *
-        process.akFSRClusteringLooseIso *
-        process.akFSRClusteringNIso
+        process.akFSRClustering1p5
         )
     
 
@@ -539,14 +533,10 @@ if options.hzz:
         fsrLabel = cms.string("akFSRCand"),
         )
     fs_daughter_inputs['muons'] = 'muonAKFSREmbedding'
-    process.muonAKFSREmbeddingLooseIso = process.muonAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['muons']),
-                                                                          jetSrc=cms.InputTag(fs_daughter_inputs['akfsr']+'LooseIso'),
-                                                                          fsrLabel=cms.string("akFSRCandLooseIso"))
-    fs_daughter_inputs['muons'] = 'muonAKFSREmbeddingLooseIso'
-    process.muonAKFSREmbeddingNIso = process.muonAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['muons']),
-                                                                      jetSrc=cms.InputTag(fs_daughter_inputs['akfsr']+'NIso'),
-                                                                      fsrLabel=cms.string("akFSRCandNIso"))
-    fs_daughter_inputs['muons'] = 'muonAKFSREmbeddingNIso'
+    process.muonAKFSREmbedding1p5 = process.muonAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['muons']),
+                                                                     jetSrc=cms.InputTag(fs_daughter_inputs['akfsr1p5']),
+                                                                     fsrLabel=cms.string("akFSRCand1p5"))
+    fs_daughter_inputs['muons'] = 'muonAKFSREmbedding1p5'
 
     process.electronAKFSREmbedding = cms.EDProducer(
         "MiniAODElectronEmbedAKFSR",
@@ -556,23 +546,17 @@ if options.hzz:
         fsrLabel = cms.string("akFSRCand"),
         )
     fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding'
-    process.electronAKFSREmbeddingLooseIso = process.electronAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['electrons']),
-                                                                                  jetSrc=cms.InputTag(fs_daughter_inputs['akfsr']+'LooseIso'),
-                                                                                  fsrLabel=cms.string("akFSRCandLooseIso"))
-    fs_daughter_inputs['electrons'] = 'electronAKFSREmbeddingLooseIso'
-    process.electronAKFSREmbeddingNIso = process.electronAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['electrons']),
-                                                                              jetSrc=cms.InputTag(fs_daughter_inputs['akfsr']+'NIso'),
-                                                                              fsrLabel=cms.string("akFSRCandNIso"))
-    fs_daughter_inputs['electrons'] = 'electronAKFSREmbeddingNIso'
+    process.electronAKFSREmbedding1p5 = process.electronAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['electrons']),
+                                                                             jetSrc=cms.InputTag(fs_daughter_inputs['akfsr1p5']),
+                                                                             fsrLabel=cms.string("akFSRCandLooseIso"))
+    fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding1p5'
 
 
     process.akFSREmbedding = cms.Sequence(
         process.muonAKFSREmbedding
-        * process.muonAKFSREmbeddingLooseIso
-        * process.muonAKFSREmbeddingNIso
+        * process.muonAKFSREmbedding1p5
         * process.electronAKFSREmbedding
-        * process.electronAKFSREmbeddingLooseIso
-        * process.electronAKFSREmbeddingNIso
+        * process.electronAKFSREmbedding1p5
         )
 
     process.embedAKFSR = cms.Path(process.makeAKFSRClusters + process.akFSREmbedding)

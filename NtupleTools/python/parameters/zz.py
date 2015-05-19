@@ -15,51 +15,51 @@ zzDiObjVars = PSet()
 eleVars = PSet()
 muVars = PSet()
 
-for iso in ['', 'LooseIso', 'NIso']:
+for rParam in ['', '1p5']:
     for fsrVar in ['pt', 'eta', 'phi']:
         varCap = fsrVar[0].upper()+fsrVar[1:]
-        setattr(zzObjVars, "objectAKFSR%s%s"%(iso, varCap), 
+        setattr(zzObjVars, "objectAKFSR%s%s"%(rParam, varCap), 
                 cms.string(('? daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
-                            'daughterUserCand({object_idx}, "akFSRCand%s").%s() : -999.')%(iso, iso, fsrVar)))
+                            'daughterUserCand({object_idx}, "akFSRCand%s").%s() : -999.')%(rParam, rParam, fsrVar)))
             
-        setattr(zzDiObjVars, "object1_object2_%sAKFSR%s"%(varCap, iso), 
-                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand%s").%s')%(iso, fsrVar))
+        setattr(zzDiObjVars, "object1_object2_%sAKFSR%s"%(varCap, rParam), 
+                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand%s").%s')%(rParam, fsrVar))
                 )
 
-        setattr(zzEvVars, '%sAKFSR%s'%(varCap, iso),
-                cms.string('p4WithUserCands("akFSRCand%s").%s'%(iso, varCap)))
+        setattr(zzEvVars, '%sAKFSR%s'%(varCap, rParam),
+                cms.string('p4WithUserCands("akFSRCand%s").%s'%(rParam, varCap)))
 
-    setattr(eleVars, "objectRelPFIsoRhoAKFSR%s"%iso,
+    setattr(eleVars, "objectRelPFIsoRhoAKFSR%s"%rParam,
             cms.string(('({object}.chargedHadronIso()' +
                         '+max(0.0,{object}.neutralHadronIso()' +
                         '+{object}.photonIso()' +
                         '-ptOfDaughterUserCand({object_idx}, "akFSR%s")' +
                         '-{object}.userFloat("rhoCSA14")*{object}.userFloat("EffectiveArea_HZZ4l2015")))' +
-                        '/{object}.pt()')%(iso))
+                        '/{object}.pt()')%(rParam))
             ),
                         # '-(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
                         # 'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
                         # '0.)' +
 
-    setattr(muVars, "objectRelPFIsoDBAKFSR%s"%iso,
+    setattr(muVars, "objectRelPFIsoDBAKFSR%s"%rParam,
             cms.string(('({object}.chargedHadronIso()' +
                         '+max({object}.photonIso()' +
                         '-ptOfDaughterUserCand({object_idx}, "akFSRCand%s")' +
                         '+{object}.neutralHadronIso()' +
                         '-0.5*{object}.puChargedHadronIso,0.0))' +
-                        '/{object}.pt()')%(iso))
+                        '/{object}.pt()')%(rParam))
             )
                         # '-1*(?daughterHasUserCand({object_idx}, "akFSRCand%s") ? ' +
                         # 'daughterUserCand({object_idx}, "akFSRCand%s").pt : ' +
                         # '0.)' +
 
 
-    setattr(zzDiObjVars, "object1_object2_MassAKFSR%s"%(iso), 
-                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand%s").M')%(iso))
+    setattr(zzDiObjVars, "object1_object2_MassAKFSR%s"%(rParam), 
+                cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "akFSRCand%s").M')%(rParam))
                 )
 
-    setattr(zzEvVars, 'MassAKFSR%s'%(iso),
-            cms.string('p4WithUserCands("akFSRCand%s").M'%(iso)))
+    setattr(zzEvVars, 'MassAKFSR%s'%(rParam),
+            cms.string('p4WithUserCands("akFSRCand%s").M'%(rParam)))
 
 eleVars.objectGenStatus = cms.string(('? (getDaughterGenParticle({object_idx}, 11, 0, 1).isAvailable && ' +
                                       'getDaughterGenParticle({object_idx}, 11, 0, 1).isNonnull) ? ' +
