@@ -436,7 +436,7 @@ if options.runMVAMET:
         process.miniAODMVAMEt
     )
 
-if options.hzz:    
+if options.hzz:
     # Put FSR photons into leptons as user cands
     from FinalStateAnalysis.PatTools.miniAODEmbedFSR_cfi \
         import embedFSRInElectrons, embedFSRInMuons
@@ -464,11 +464,21 @@ if options.hzz:
         )
     process.schedule.append(process.embedFSRInfo)
 
+    # Make a skimmed collection that is a subset of packed PF cands to speed things up
+    process.fsrBaseCands = cms.EDFilter(
+        "CandPtrSelector",
+        src = cms.InputTag("packedPFCandidates"),
+        cut = cms.string("(pdgId == 22 | abs(pdgId) == 11 | abs(pdgId) == 13) & pt > 1.5 & abs(eta) < 2.6"),
+        )
+    process.fsrBaseCandSeq = cms.Sequence(process.fsrBaseCands)
+    process.fsrBaseCandPath = cms.Path(process.fsrBaseCandSeq)
+    process.schedule.append(process.fsrBaseCandPath)
+
     # Make a second FSR collection with loose leptons included
     # then build "jets" out of them to see if that's a reasonable way to do it
     process.leptonPhotonSelection = cms.EDFilter(
         "CandPtrSelector",
-        src = cms.InputTag("packedPFCandidates"),
+        src = cms.InputTag("fsrBaseCands"), #packedPFCandidates"),
         cut = cms.string("pdgId == 22 | abs(pdgId) == 11 | abs(pdgId) == 13"),
         )
     fs_daughter_inputs['akfsr'] = 'leptonPhotonSelection'
@@ -548,7 +558,7 @@ if options.hzz:
     fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding'
     process.electronAKFSREmbedding1p5 = process.electronAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['electrons']),
                                                                              jetSrc=cms.InputTag(fs_daughter_inputs['akfsr1p5']),
-                                                                             fsrLabel=cms.string("akFSRCandLooseIso"))
+                                                                             fsrLabel=cms.string("akFSRCand1p5"))
     fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding1p5'
 
 
@@ -561,6 +571,34 @@ if options.hzz:
 
     process.embedAKFSR = cms.Path(process.makeAKFSRClusters + process.akFSREmbedding)
     process.schedule.append(process.embedAKFSR)       
+
+
+    # Create and embed yet another experimental FSR collection, this time using
+    # deltaR/eT as the photon figure of merit
+    process.dretPhotonSelection = cms.EDFilter(
+        "CandPtrSelector",
+        src = cms.InputTag("fsrBaseCands"), #packedPFCandidates"),
+        cut = cms.string("pdgId == 22 & pt > 2. & abs(eta) < 2.4"),
+        )
+    fs_daughter_inputs['dretfsr'] = 'dretPhotonSelection'
+
+    process.leptonDRETFSREmbedding = cms.EDProducer(
+        "MiniAODLeptonDRETFSREmbedder",
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        phoSrc = cms.InputTag(fs_daughter_inputs['dretfsr']),
+        phoSelection = cms.string(""),
+        eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
+        muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
+        fsrLabel = cms.string("dretFSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonDRETFSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonDRETFSREmbedding'
+
+    process.embedDRETFSR = cms.Sequence(process.dretPhotonSelection * 
+                                        process.leptonDRETFSREmbedding)
+    process.dREtFSR = cms.Path(process.embedDRETFSR)
+    process.schedule.append(process.dREtFSR)
 
 
 # Make a list of collections to save (in case we're saving 
@@ -735,6 +773,7 @@ if options.keepPat:
         if options.keepPat >= 3:
             print "... Including packedPFCandidates"
             output_to_keep.append('*_packedPFCandidates_*_*')
+
     output_commands = cms.untracked.vstring('drop *')
 
     for product in output_to_keep:
