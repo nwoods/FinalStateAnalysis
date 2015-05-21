@@ -134,7 +134,7 @@ void MiniAODObjectEmbedAKFSR<T>::produce(
               continue;
             }
               
-          photons.push_back(dau);
+          photons.push_back(dau->masterClonePtr());
         }
 
       // pick the highest pt photon, ignoring photons with a closer lepton
