@@ -354,6 +354,10 @@ class PATFinalState : public pat::PATObject<reco::LeafCandidate> {
     // Get the pt of a daughter's userCand, or 0 if it doesn't have one
     const float ptOfDaughterUserCand(const size_t i, const std::string& label) const;
 
+    // Get the pt of a daughter's userCand if it's closer than deltaR=0.4 and 
+    // farther than deltaR=0.01
+    const float daughterUserCandIsoContribution(const size_t i, const std::string& label) const;
+
   private:
     edm::Ptr<PATFinalStateEvent> event_;
 };
