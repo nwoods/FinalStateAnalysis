@@ -545,7 +545,7 @@ if options.hzz:
     fs_daughter_inputs['muons'] = 'muonAKFSREmbedding'
     process.muonAKFSREmbedding1p5 = process.muonAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['muons']),
                                                                      jetSrc=cms.InputTag(fs_daughter_inputs['akfsr1p5']),
-                                                                     fsrLabel=cms.string("akFSRCand1p5"))
+                                                                     fsrLabel=cms.string("akFSR1p5Cand"))
     fs_daughter_inputs['muons'] = 'muonAKFSREmbedding1p5'
 
     process.electronAKFSREmbedding = cms.EDProducer(
@@ -558,7 +558,7 @@ if options.hzz:
     fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding'
     process.electronAKFSREmbedding1p5 = process.electronAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['electrons']),
                                                                              jetSrc=cms.InputTag(fs_daughter_inputs['akfsr1p5']),
-                                                                             fsrLabel=cms.string("akFSRCand1p5"))
+                                                                             fsrLabel=cms.string("akFSR1p5Cand"))
     fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding1p5'
 
 
