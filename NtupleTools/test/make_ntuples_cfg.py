@@ -440,6 +440,32 @@ if options.hzz:
     # Put FSR photons into leptons as user cands
     from FinalStateAnalysis.PatTools.miniAODEmbedFSR_cfi \
         import embedFSRInElectrons, embedFSRInMuons
+    process.electronIsoFSREmbedder = embedFSRInElectrons.clone(
+        src = cms.InputTag(fs_daughter_inputs['electrons']),
+        srcAlt = cms.InputTag(fs_daughter_inputs['muons']),
+        srcPho = cms.InputTag(fs_daughter_inputs['fsr']),
+        srcVeto = cms.InputTag(fs_daughter_inputs['electrons']),
+        srcVtx = cms.InputTag(fs_daughter_inputs['vertices']),
+        idDecisionLabel = cms.string(idCheatLabel),
+        userLabel = cms.string("IsoFSRCand"),
+        )
+    fs_daughter_inputs['electrons'] = 'electronIsoFSREmbedder'
+    process.muonIsoFSREmbedder = embedFSRInMuons.clone(
+        src = cms.InputTag(fs_daughter_inputs['muons']),
+        srcAlt = cms.InputTag(fs_daughter_inputs['electrons']),
+        srcPho = cms.InputTag(fs_daughter_inputs['fsr']),
+        srcVeto = cms.InputTag(fs_daughter_inputs['electrons']),
+        srcVtx = cms.InputTag(fs_daughter_inputs['vertices']),
+        idDecisionLabel = cms.string(idCheatLabel),
+        userLabel = cms.string("IsoFSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'muonIsoFSREmbedder'
+    process.embedIsoFSR = cms.Path(
+        process.electronIsoFSREmbedder +
+        process.muonIsoFSREmbedder
+        )
+    process.schedule.append(process.embedIsoFSR)
+
     process.electronFSREmbedder = embedFSRInElectrons.clone(
         src = cms.InputTag(fs_daughter_inputs['electrons']),
         srcAlt = cms.InputTag(fs_daughter_inputs['muons']),
@@ -447,6 +473,7 @@ if options.hzz:
         srcVeto = cms.InputTag(fs_daughter_inputs['electrons']),
         srcVtx = cms.InputTag(fs_daughter_inputs['vertices']),
         idDecisionLabel = cms.string(idCheatLabel),
+        isoOuter = cms.double(999.),
         )
     fs_daughter_inputs['electrons'] = 'electronFSREmbedder'
     process.muonFSREmbedder = embedFSRInMuons.clone(
@@ -456,13 +483,15 @@ if options.hzz:
         srcVeto = cms.InputTag(fs_daughter_inputs['electrons']),
         srcVtx = cms.InputTag(fs_daughter_inputs['vertices']),
         idDecisionLabel = cms.string(idCheatLabel),
+        isoOuter = cms.double(999.),
         )
     fs_daughter_inputs['muons'] = 'muonFSREmbedder'
-    process.embedFSRInfo = cms.Path(
+    process.embedFSR = cms.Path(
         process.electronFSREmbedder +
         process.muonFSREmbedder
         )
-    process.schedule.append(process.embedFSRInfo)
+    process.schedule.append(process.embedFSR)
+
 
     # Make a skimmed collection that is a subset of packed PF cands to speed things up
     process.fsrBaseCands = cms.EDFilter(
@@ -483,31 +512,36 @@ if options.hzz:
         )
     fs_daughter_inputs['akfsr'] = 'leptonPhotonSelection'
 
-    process.akFSRChHadIso = process.fsrPhotonPFIsoChHadPUNoPU03pt02.clone(photonLabel = cms.InputTag(fs_daughter_inputs['akfsr']))
-    process.akFSRNHadPhoIso = process.fsrPhotonPFIsoNHadPhoton03.clone(photonLabel = cms.InputTag(fs_daughter_inputs['akfsr']))
-
     process.cleanAKFSR = cms.EDProducer(
         "MiniAODAKFSRCandCleaner",
         src = cms.InputTag(fs_daughter_inputs['akfsr']),
         eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
         muSrc = cms.InputTag(fs_daughter_inputs['muons']),
-        relIsoCut = cms.double(1.),
+        relIsoCut = cms.double(999.),
         phoSelection = cms.string("abs(eta) < 2.4 & pt > 2"),
         eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
         muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
         isoSrc = cms.VInputTag(
-           cms.InputTag("akFSRChHadIso"),
-           cms.InputTag("akFSRNHadPhoIso"),
-           ),
+            ),
         )
-    fs_daughter_inputs['akfsr'] = 'cleanAKFSR'
+
+    process.akFSRChHadIso = process.fsrPhotonPFIsoChHadPUNoPU03pt02.clone(photonLabel = cms.InputTag(fs_daughter_inputs['akfsr']))
+    process.akFSRNHadPhoIso = process.fsrPhotonPFIsoNHadPhoton03.clone(photonLabel = cms.InputTag(fs_daughter_inputs['akfsr']))
+
+    process.cleanIsoAKFSR = process.cleanAKFSR.clone(
+        isoSrc = cms.VInputTag(
+            cms.InputTag("akFSRChHadIso"),
+            cms.InputTag("akFSRNHadPhoIso"),
+            ),
+        relIsoCut = cms.double(1.),
+        )        
 
     # Find the best photon in the same lepton/photon "jet" as each lepton and embed it as FSR
     from RecoJets.JetProducers.AnomalousCellParameters_cfi import *
     process.akFSRClustering = cms.EDProducer(
         "FastjetJetProducer",
         AnomalousCellParameters,
-        src = cms.InputTag(fs_daughter_inputs['akfsr']),
+        src = cms.InputTag("cleanAKFSR"),
         jetType = cms.string("BasicJet"),
         jetPtMin = cms.double(10.),
         jetAlgorithm = cms.string("AntiKt"),
@@ -522,55 +556,82 @@ if options.hzz:
         doAreaDiskApprox = cms.bool(False),
         )
     process.akFSRClustering1p5 = process.akFSRClustering.clone(rParam=cms.double(0.15))
-    fs_daughter_inputs['akfsr'] = 'akFSRClustering'
-    fs_daughter_inputs['akfsr1p5'] = 'akFSRClustering1p5'
+
+    process.isoAKFSRClustering = process.akFSRClustering.clone(src=cms.InputTag("cleanIsoAKFSR"))
+    process.isoAKFSRClustering1p5 = process.isoAKFSRClustering.clone(rParam=cms.double(0.15))
 
     process.makeAKFSRClusters = cms.Sequence(
         process.leptonPhotonSelection *
-        process.akFSRChHadIso *
-        process.akFSRNHadPhoIso *
         process.cleanAKFSR *
         process.akFSRClustering *
-        process.akFSRClustering1p5
+        process.akFSRClustering1p5 *
+        process.akFSRChHadIso *
+        process.akFSRNHadPhoIso *
+        process.cleanIsoAKFSR *
+        process.isoAKFSRClustering *
+        process.isoAKFSRClustering1p5
         )
     
 
     process.muonAKFSREmbedding = cms.EDProducer(
         "MiniAODMuonEmbedAKFSR",
         src = cms.InputTag(fs_daughter_inputs['muons']),
-        jetSrc = cms.InputTag(fs_daughter_inputs['akfsr']),
+        jetSrc = cms.InputTag("akFSRClustering"),
         maxDeltaR = cms.double(0.3),
         fsrLabel = cms.string("akFSRCand"),
         )
     fs_daughter_inputs['muons'] = 'muonAKFSREmbedding'
     process.muonAKFSREmbedding1p5 = process.muonAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['muons']),
-                                                                     jetSrc=cms.InputTag(fs_daughter_inputs['akfsr1p5']),
+                                                                     jetSrc=cms.InputTag("akFSRClustering1p5"),
                                                                      fsrLabel=cms.string("akFSR1p5Cand"))
     fs_daughter_inputs['muons'] = 'muonAKFSREmbedding1p5'
 
     process.electronAKFSREmbedding = cms.EDProducer(
         "MiniAODElectronEmbedAKFSR",
         src = cms.InputTag(fs_daughter_inputs['electrons']),
-        jetSrc = cms.InputTag(fs_daughter_inputs['akfsr']),
+        jetSrc = cms.InputTag("akFSRClustering"),
         maxDeltaR = cms.double(0.3),
         fsrLabel = cms.string("akFSRCand"),
         )
     fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding'
     process.electronAKFSREmbedding1p5 = process.electronAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['electrons']),
-                                                                             jetSrc=cms.InputTag(fs_daughter_inputs['akfsr1p5']),
+                                                                             jetSrc=cms.InputTag("akFSRClustering1p5"),
                                                                              fsrLabel=cms.string("akFSR1p5Cand"))
     fs_daughter_inputs['electrons'] = 'electronAKFSREmbedding1p5'
 
+    process.muonIsoAKFSREmbedding = process.muonAKFSREmbedding.clone(
+        jetSrc = cms.InputTag("isoAKFSRClustering"),
+        src = cms.InputTag(fs_daughter_inputs['muons']),
+        fsrLabel = cms.string("isoAKFSRCand"))
+    fs_daughter_inputs['muons'] = 'muonIsoAKFSREmbedding'
+    process.muonIsoAKFSREmbedding1p5 = process.muonIsoAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['muons']),
+                                                                           jetSrc=cms.InputTag("isoAKFSRClustering1p5"),
+                                                                           fsrLabel=cms.string("isoAKFSR1p5Cand"))
+    fs_daughter_inputs['muons'] = 'muonIsoAKFSREmbedding1p5'
+
+    process.electronIsoAKFSREmbedding = process.electronAKFSREmbedding.clone(
+        jetSrc = cms.InputTag("isoAKFSRClustering"),
+        src = cms.InputTag(fs_daughter_inputs['electrons']),
+        fsrLabel = cms.string("isoAKFSRCand"))
+    fs_daughter_inputs['electrons'] = 'electronIsoAKFSREmbedding'
+    process.electronIsoAKFSREmbedding1p5 = process.electronIsoAKFSREmbedding.clone(src=cms.InputTag(fs_daughter_inputs['electrons']),
+                                                                                   jetSrc=cms.InputTag("isoAKFSRClustering1p5"),
+                                                                                   fsrLabel=cms.string("isoAKFSR1p5Cand"))
+    fs_daughter_inputs['electrons'] = 'electronIsoAKFSREmbedding1p5'
 
     process.akFSREmbedding = cms.Sequence(
         process.muonAKFSREmbedding
         * process.muonAKFSREmbedding1p5
         * process.electronAKFSREmbedding
         * process.electronAKFSREmbedding1p5
+        * process.muonIsoAKFSREmbedding
+        * process.muonIsoAKFSREmbedding1p5
+        * process.electronIsoAKFSREmbedding
+        * process.electronIsoAKFSREmbedding1p5
         )
 
     process.embedAKFSR = cms.Path(process.makeAKFSRClusters + process.akFSREmbedding)
-    process.schedule.append(process.embedAKFSR)       
+    process.schedule.append(process.embedAKFSR)
 
 
     # Create and embed yet another experimental FSR collection, this time using
@@ -586,7 +647,7 @@ if options.hzz:
         "MiniAODLeptonDRETFSREmbedder",
         muSrc = cms.InputTag(fs_daughter_inputs['muons']),
         eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
-        phoSrc = cms.InputTag(fs_daughter_inputs['dretfsr']),
+        phoSrc = cms.InputTag("dretPhotonSelection"),
         phoSelection = cms.string(""),
         eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
         muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
@@ -595,8 +656,16 @@ if options.hzz:
     fs_daughter_inputs['muons'] = 'leptonDRETFSREmbedding'
     fs_daughter_inputs['elecrons'] = 'leptonDRETFSREmbedding'
 
+    process.leptonDRET2FSREmbedding = process.leptonDRETFSREmbedding.clone(
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        etPower = cms.double(2.),
+        fsrLabel = cms.string("dret2FSRCand"),
+        )
+
     process.embedDRETFSR = cms.Sequence(process.dretPhotonSelection * 
-                                        process.leptonDRETFSREmbedding)
+                                        process.leptonDRETFSREmbedding *
+                                        process.leptonDRET2FSREmbedding)
     process.dREtFSR = cms.Path(process.embedDRETFSR)
     process.schedule.append(process.dREtFSR)
 

@@ -17,6 +17,7 @@
 // system include files
 #include <memory>
 #include <iostream>
+#include <math.h> // pow
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -67,6 +68,7 @@ private:
   const float scVetoDR_;
   const float scVetoDEta_;
   const float scVetoDPhi_;
+  const float etPower_;
 };
 
 
@@ -94,7 +96,10 @@ MiniAODLeptonDRETFSREmbedder::MiniAODLeptonDRETFSREmbedder(const edm::ParameterS
               0.05),
   scVetoDPhi_(iConfig.exists("scVetoDPhi") ?
               float(iConfig.getParameter<double>("scVetoDPhi")) :
-              2.)
+              2.),
+  etPower_(iConfig.exists("etPower") ?
+	   float(iConfig.getParameter<double>("etPower")) :
+	   1.)
 {
   produces<std::vector<Muon> >();
   produces<std::vector<Elec> >();
@@ -185,7 +190,7 @@ void MiniAODLeptonDRETFSREmbedder::produce(edm::Event& iEvent, const edm::EventS
         {
           CandPtr pho = phosByEle[iE][iPho];
 
-          float drEt = reco::deltaR(e.p4(), pho->p4()) / pho->et();
+          float drEt = reco::deltaR(e.p4(), pho->p4()) / pow(pho->et(), etPower_);
           if(drEt < dREtBestPho)
             {
               dREtBestPho = drEt;
@@ -213,7 +218,7 @@ void MiniAODLeptonDRETFSREmbedder::produce(edm::Event& iEvent, const edm::EventS
         {
           CandPtr pho = phosByMu[iM][iPho];
 
-          float drEt = reco::deltaR(m.p4(), pho->p4()) / pho->et();
+          float drEt = reco::deltaR(m.p4(), pho->p4()) / pow(pho->et(), etPower_);
           if(drEt < dREtBestPho)
             {
               dREtBestPho = drEt;
