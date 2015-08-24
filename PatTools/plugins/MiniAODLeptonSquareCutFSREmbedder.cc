@@ -1,13 +1,13 @@
 //////////////////////////////////////////////////////////////////////////////
 ///                                                                        ///
-///    MiniAODLeptonDRETFSREmbedder.cc                                     ///
+///    MiniAODLeptonSquareCutFSREmbedder.cc                                ///
 ///                                                                        ///
 ///    From a collection of photons, a collection of muons, and a          ///
 ///        collection of electrons: make sure each photon is not in an     ///
 ///        electron supercluster, and pair it to its closest lepton.       ///
-///        For each lepton, embed the photon with the smallest deltaR/eT   ///
-///        as a usercand. Cut strings may be supplied for all three types  ///
-///        of objects.                                                     ///
+///        For each lepton, embed a reco::Candidate with the 4-momentum    ///
+///        of all photons passing a dR and eT cut as a usercand. Cut       ///
+///        strings may be supplied for all three typesof objects.          ///
 ///                                                                        ///
 ///    Author: Nate Woods, U. Wisconsin                                    ///
 ///                                                                        ///
@@ -37,6 +37,8 @@
 
 typedef reco::Candidate Cand;
 typedef edm::Ptr<Cand> CandPtr;
+typedef reco::PFCandidate PFCand;
+typedef edm::Ptr<PFCand> PFCandPtr;
 typedef reco::CandidateView CandView;
 typedef pat::Electron Elec;
 typedef edm::Ptr<pat::Electron> ElecPtr;
@@ -45,11 +47,11 @@ typedef pat::Muon Muon;
 typedef edm::Ptr<pat::Muon> MuonPtr;
 typedef edm::View<pat::Muon> MuonView;
 
-class MiniAODLeptonDRETFSREmbedder : public edm::EDProducer
+class MiniAODLeptonSquareCutFSREmbedder : public edm::EDProducer
 {
 public:
-  explicit MiniAODLeptonDRETFSREmbedder(const edm::ParameterSet&);
-  ~MiniAODLeptonDRETFSREmbedder();
+  explicit MiniAODLeptonSquareCutFSREmbedder(const edm::ParameterSet&);
+  ~MiniAODLeptonSquareCutFSREmbedder();
 
 private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
@@ -68,12 +70,12 @@ private:
   const float scVetoDR_;
   const float scVetoDEta_;
   const float scVetoDPhi_;
-  const float etPower_;
-  const float maxDR_;
+  const float dRCut_;
+  const float etCut_;
 };
 
 
-MiniAODLeptonDRETFSREmbedder::MiniAODLeptonDRETFSREmbedder(const edm::ParameterSet& iConfig):
+MiniAODLeptonSquareCutFSREmbedder::MiniAODLeptonSquareCutFSREmbedder(const edm::ParameterSet& iConfig):
   photons_(consumes<CandView>(iConfig.getParameter<edm::InputTag>("phoSrc"))),
   electrons_(consumes<ElecView>(iConfig.getParameter<edm::InputTag>("eSrc"))),
   muons_(consumes<MuonView>(iConfig.getParameter<edm::InputTag>("muSrc"))),
@@ -98,25 +100,25 @@ MiniAODLeptonDRETFSREmbedder::MiniAODLeptonDRETFSREmbedder(const edm::ParameterS
   scVetoDPhi_(iConfig.exists("scVetoDPhi") ?
               float(iConfig.getParameter<double>("scVetoDPhi")) :
               2.),
-  etPower_(iConfig.exists("etPower") ?
-	   float(iConfig.getParameter<double>("etPower")) :
-	   1.),
-  maxDR_(iConfig.exists("maxDR") ?
-         float(iConfig.getParameter<double>("maxDR")) :
-         0.5)
-
+  dRCut_(iConfig.exists("dRCut") ?
+         float(iConfig.getParameter<double>("dRCut")) :
+         0.3),
+  etCut_(iConfig.exists("etCut") ?
+         float(iConfig.getParameter<double>("etCut")) :
+         4.)
 {
   produces<std::vector<Muon> >();
   produces<std::vector<Elec> >();
+  produces<std::vector<PFCand> >();
 }
 
 
-MiniAODLeptonDRETFSREmbedder::~MiniAODLeptonDRETFSREmbedder()
+MiniAODLeptonSquareCutFSREmbedder::~MiniAODLeptonSquareCutFSREmbedder()
 {
 }
 
 
-void MiniAODLeptonDRETFSREmbedder::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+void MiniAODLeptonSquareCutFSREmbedder::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   std::auto_ptr<std::vector<Muon> > mOut( new std::vector<Muon> );
   std::auto_ptr<std::vector<Elec> > eOut( new std::vector<Elec> );
@@ -177,36 +179,90 @@ void MiniAODLeptonDRETFSREmbedder::produce(edm::Event& iEvent, const edm::EventS
             }
         }
 
-      if(elecs->size() && dRBestEle < dRBestMu && dRBestEle < maxDR_)
+      if(elecs->size() && dRBestEle < dRBestMu)
         phosByEle.at(iBestEle).push_back(pho);
-      else if(mus->size() && dRBestMu < maxDR_)
+      else if(mus->size())
         phosByMu.at(iBestMu).push_back(pho);
-      
     }
 
+  // because we need to embed a Ptr to the new photon, and that doesn't
+  // exist do Event::put, we have to keep track of which new photon each
+  // lepton is paired to. 9999 means no match.
+  std::vector<size_t> newIndByEle = std::vector<size_t>();
+  std::vector<size_t> newIndByMu = std::vector<size_t>();
+  std::auto_ptr<std::vector<PFCand> > newPhos( new std::vector<PFCand> );
+      
   for(size_t iE = 0; iE < elecs->size(); ++iE)
     {
       Elec e = elecs->at(iE);
       
-      CandPtr bestPho;
-      float dREtBestPho = 9999.;
-      
+      std::vector<CandPtr> passing = std::vector<CandPtr>();
+
       for(size_t iPho = 0; iPho < phosByEle[iE].size(); ++iPho)
         {
           CandPtr pho = phosByEle[iE][iPho];
 
-          float drEt = reco::deltaR(e.p4(), pho->p4()) / pow(pho->et(), etPower_);
-          if(drEt < dREtBestPho)
-            {
-              dREtBestPho = drEt;
-              bestPho = pho;
-            }
+          float dR = reco::deltaR(e.p4(), pho->p4());
+          float et = pho->et();
+          
+          if(dR < dRCut_ && et > etCut_)
+            passing.push_back(pho);
         }
 
-      if(phosByEle[iE].size())
+      if(passing.size())
         {
-          e.addUserCand(fsrLabel_, bestPho);
-          e.addUserFloat(fsrLabel_+"DREt", dREtBestPho);
+          reco::Particle::LorentzVector p4 = passing[0]->p4();
+          for(size_t i = 1; i < passing.size(); ++i)
+            p4 += passing.at(i)->p4();
+              
+          newIndByEle.push_back(newPhos->size());
+          newPhos->push_back(reco::PFCandidate(0, p4, reco::PFCandidate::gamma));
+        }
+      else
+        newIndByEle.push_back(9999);
+    }
+
+  for(size_t iM = 0; iM < mus->size(); ++iM)
+    {
+      Muon m = mus->at(iM);
+      
+      std::vector<CandPtr> passing = std::vector<CandPtr>();
+      
+      for(size_t iPho = 0; iPho < phosByMu[iM].size(); ++iPho)
+        {
+          CandPtr pho = phosByMu[iM][iPho];
+
+          float dR = reco::deltaR(m.p4(), pho->p4());
+          float et = pho->et();
+
+          if(dR < dRCut_ && et > etCut_)
+            passing.push_back(pho);
+        }
+
+      if(passing.size())
+        {
+          reco::Particle::LorentzVector p4 = passing[0]->p4();
+          for(size_t i = 1; i < passing.size(); ++i)
+            p4 += passing.at(i)->p4();
+              
+          newIndByMu.push_back(newPhos->size());
+          newPhos->push_back(reco::PFCandidate(0, p4, reco::PFCandidate::gamma));
+        }
+      else
+        newIndByMu.push_back(9999);
+    }
+
+  edm::OrphanHandle<std::vector<PFCand> > newProd = iEvent.put(newPhos);
+
+  for(size_t iE = 0; iE < elecs->size(); ++iE)
+    {
+      Elec e = elecs->at(iE);
+
+      if(newIndByEle.at(iE) < newProd->size())
+        {
+          PFCandPtr phoPtr(newProd, newIndByEle.at(iE));
+
+          e.addUserCand(fsrLabel_, phoPtr);
         }
 
       eOut->push_back(e);
@@ -215,26 +271,11 @@ void MiniAODLeptonDRETFSREmbedder::produce(edm::Event& iEvent, const edm::EventS
   for(size_t iM = 0; iM < mus->size(); ++iM)
     {
       Muon m = mus->at(iM);
-      
-      CandPtr bestPho;
-      float dREtBestPho = 9999.;
-      
-      for(size_t iPho = 0; iPho < phosByMu[iM].size(); ++iPho)
-        {
-          CandPtr pho = phosByMu[iM][iPho];
 
-          float drEt = reco::deltaR(m.p4(), pho->p4()) / pow(pho->et(), etPower_);
-          if(drEt < dREtBestPho)
-            {
-              dREtBestPho = drEt;
-              bestPho = pho;
-            }
-        }
-
-      if(phosByMu[iM].size())
+      if(newIndByMu.at(iM) < newProd->size())
         {
-          m.addUserCand(fsrLabel_, bestPho);
-          m.addUserFloat(fsrLabel_+"DREt", dREtBestPho);
+          PFCandPtr phoPtr(newProd, newIndByMu.at(iM));
+          m.addUserCand(fsrLabel_, phoPtr);
         }
 
       mOut->push_back(m);
@@ -242,11 +283,12 @@ void MiniAODLeptonDRETFSREmbedder::produce(edm::Event& iEvent, const edm::EventS
 
   iEvent.put( eOut );
   iEvent.put( mOut );
+
 }
 
 
-bool MiniAODLeptonDRETFSREmbedder::isInSuperCluster(const CandPtr& cand, 
-                                               const std::vector<ElecPtr>& elecs) const
+bool MiniAODLeptonSquareCutFSREmbedder::isInSuperCluster(const CandPtr& cand, 
+                                                         const std::vector<ElecPtr>& elecs) const
 {
   for(auto elec = elecs.begin(); elec != elecs.end(); ++elec)
     {
@@ -265,5 +307,5 @@ bool MiniAODLeptonDRETFSREmbedder::isInSuperCluster(const CandPtr& cand,
 
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(MiniAODLeptonDRETFSREmbedder);
+DEFINE_FWK_MODULE(MiniAODLeptonSquareCutFSREmbedder);
 

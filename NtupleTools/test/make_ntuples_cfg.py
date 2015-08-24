@@ -516,7 +516,7 @@ if options.hzz:
     process.dretPhotonSelection = cms.EDFilter(
         "CandPtrSelector",
         src = cms.InputTag("fsrBaseCands"), #packedPFCandidates"),
-        cut = cms.string("pdgId == 22 & pt > 2. & abs(eta) < 2.4"),
+        cut = cms.string("pdgId == 22 & pt > 4. & abs(eta) < 2.4"),
         )
     fs_daughter_inputs['dretfsr'] = 'dretPhotonSelection'
 
@@ -533,18 +533,50 @@ if options.hzz:
     fs_daughter_inputs['muons'] = 'leptonDRETFSREmbedding'
     fs_daughter_inputs['elecrons'] = 'leptonDRETFSREmbedding'
 
-    process.leptonDRET2FSREmbedding = process.leptonDRETFSREmbedding.clone(
+    process.leptonDRET15FSREmbedding = process.leptonDRETFSREmbedding.clone(
         muSrc = cms.InputTag(fs_daughter_inputs['muons']),
         eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
-        etPower = cms.double(2.),
-        fsrLabel = cms.string("dret2FSRCand"),
+        etPower = cms.double(1.5),
+        fsrLabel = cms.string("dret15FSRCand"),
         )
+    fs_daughter_inputs['muons'] = 'leptonDRET15FSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonDRET15FSREmbedding'
 
     process.embedDRETFSR = cms.Sequence(process.dretPhotonSelection * 
                                         process.leptonDRETFSREmbedding *
-                                        process.leptonDRET2FSREmbedding)
+                                        process.leptonDRET15FSREmbedding)
     process.dREtFSR = cms.Path(process.embedDRETFSR)
     process.schedule.append(process.dREtFSR)
+
+
+    process.leptonSquareCutEt4DR03FSREmbedding = cms.EDProducer(
+        "MiniAODLeptonSquareCutFSREmbedder",
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        phoSrc = cms.InputTag("dretPhotonSelection"),
+        phoSelection = cms.string(""),
+        eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
+        muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
+        fsrLabel = cms.string("et4DR03FSRCand"),
+        dRCut = cms.double(0.3),
+        etCut = cms.double(4.),
+        )
+    fs_daughter_inputs['muons'] = 'leptonSquareCutEt4DR03FSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonSquareCutEt4DR03FSREmbedding'
+
+    process.leptonSquareCutEt4DR01FSREmbedding = process.leptonDRETFSREmbedding.clone(
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        dRCut = cms.double(0.1),
+        fsrLabel = cms.string("et4DR01FSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonSquareCutEt4DR01FSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonSquareCutEt4DR01FSREmbedding'
+
+    process.embedSquareCutFSR = cms.Sequence(process.leptonSquareCutEt4DR03FSREmbedding *
+                                             process.leptonSquareCutEt4DR03FSREmbedding)
+    process.squareCutFSR = cms.Path(process.embedSquareCutFSR)
+    process.schedule.append(process.squareCutFSR)
 
 
 
@@ -554,6 +586,9 @@ if options.hzz:
 # the collections it used to build the final states, but not the final
 # states themselves, because that fills the file up with unwanted stuff
 output_to_keep = []
+
+if options.hzz:
+    output_to_keep.append('*_leptonSquareCut*_*_*')
 
 # Eventually, set buildFSAEvent to False, currently working around bug
 # in pat tuples.

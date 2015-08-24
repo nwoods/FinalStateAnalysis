@@ -13,53 +13,54 @@ zzDiObjVars = PSet()
 eleVars = PSet()
 muVars = PSet()
 
-fsr = 'dretFSR'
-brSuffix = fsr.replace("dret", "DREt")
-for fsrVar in ['pt', 'eta', 'phi']:
-    varCap = fsrVar[0].upper()+fsrVar[1:]
-    setattr(zzObjVars, "object%s%s"%(brSuffix, varCap), 
-            cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
-                        'daughterUserCand({object_idx}, "%sCand").%s() : -999.')%(fsr, fsr, fsrVar)))
+for fsr in ['dretFSR', 'dret15FSR', 'et4DR03FSR', 'et4DR01FSR']:
+    brSuffix = fsr.replace("dret", "DREt").replace("et4DR", "Et4DR")
+    for maybeDM in ['', "DM"]:
+        for fsrVar in ['pt', 'eta', 'phi']:
+            varCap = fsrVar[0].upper()+fsrVar[1:]
+            setattr(zzObjVars, "object%s%s"%(brSuffix, varCap), 
+                    cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
+                                'daughterUserCand({object_idx}, "%sCand").%s() : -999.')%(fsr, fsr, fsrVar)))
+                
+            setattr(zzDiObjVars, "object1_object2_%s%s%s"%(varCap, brSuffix, maybeDM), 
+                    cms.string(('diObjectP4WithUserCands%s({object1_idx}, {object2_idx}, "%sCand").%s')%(maybeDM, fsr, fsrVar))
+                    )
         
-    setattr(zzDiObjVars, "object1_object2_%s%s"%(varCap, brSuffix), 
-            cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "%sCand").%s')%(fsr, fsrVar))
-            )
-
-    setattr(zzEvVars, '%s%s'%(varCap, brSuffix),
-            cms.string('p4WithUserCands("%sCand").%s'%(fsr, varCap)))
-
-setattr(eleVars, "objectRelPFIsoRho%s"%brSuffix,
-        cms.string(('({object}.chargedHadronIso()' +
-                    '+max(0.0,{object}.neutralHadronIso()' +
-                    '+{object}.photonIso()' +
-                    '-daughterUserCandIsoContribution({object_idx}, "%sCand")' +
-                    '-{object}.userFloat("rhoCSA14")*{object}.userFloat("EffectiveArea_HZZ4l2015")))' +
-                    '/{object}.pt()')%(fsr))
-        ),
-
-setattr(muVars, "objectRelPFIsoDB%s"%brSuffix,
-        cms.string(('({object}.chargedHadronIso()' +
-                    '+max({object}.photonIso()' +
-                    '-daughterUserCandIsoContribution({object_idx}, "%sCand")' +
-                    '+{object}.neutralHadronIso()' +
-                    '-0.5*{object}.puChargedHadronIso,0.0))' +
-                    '/{object}.pt()')%(fsr))
-        )
-
-setattr(zzDiObjVars, "object1_object2_Mass%s"%(brSuffix), 
-            cms.string(('diObjectP4WithUserCands({object1_idx}, {object2_idx}, "%sCand").M')%(fsr))
-            )
-
-setattr(zzEvVars, 'Mass%s'%(brSuffix),
-            cms.string('p4WithUserCands("%sCand").M'%(fsr)))
-
-eleVars.objectDREt = cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
-                           'daughterAsElectron({object_idx}).userFloat("%sDREt") : ' +
-                           '-999.')%(fsr, fsr))
-
-muVars.objectDREt = cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
-                          'daughterAsMuon({object_idx}).userFloat("%sCandDREt") : ' +
-                          '-999.')%(fsr, fsr))
+            setattr(zzEvVars, '%s%s%s'%(varCap, brSuffix, maybeDM),
+                    cms.string('p4WithUserCands%s("%sCand").%s'%(maybeDM, fsr, varCap)))
+        
+        setattr(eleVars, "objectRelPFIsoRho%s%s"%(brSuffix, maybeDM),
+                cms.string(('({object}.chargedHadronIso()' +
+                            '+max(0.0,{object}.neutralHadronIso()' +
+                            '+{object}.photonIso()' +
+                            '-daughterUserCandIsoContribution%s({object_idx}, "%sCand")' +
+                            '-{object}.userFloat("rhoCSA14")*{object}.userFloat("EffectiveArea_HZZ4l2015")))' +
+                            '/{object}.pt()')%(maybeDM, fsr))
+                ),
+        
+        setattr(muVars, "objectRelPFIsoDB%s%s"%(brSuffix, maybeDM),
+                cms.string(('({object}.chargedHadronIso()' +
+                            '+max({object}.photonIso()' +
+                            '-daughterUserCandIsoContribution%s({object_idx}, "%sCand")' +
+                            '+{object}.neutralHadronIso()' +
+                            '-0.5*{object}.puChargedHadronIso,0.0))' +
+                            '/{object}.pt()')%(maybeDM, fsr))
+                )
+        
+        setattr(zzDiObjVars, "object1_object2_Mass%s%s"%(brSuffix, maybeDM), 
+                cms.string(('diObjectP4WithUserCands%s({object1_idx}, {object2_idx}, "%sCand").M')%(maybeDM, fsr))
+                )
+        
+        setattr(zzEvVars, 'Mass%s%s'%(brSuffix, maybeDM),
+                cms.string('p4WithUserCands%s("%sCand").M'%(maybeDM, fsr)))
+        
+        eleVars.objectDREt = cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
+                                         'daughterAsElectron({object_idx}).userFloat("%sDREt") : ' +
+                                         '-999.')%(fsr, fsr))
+        
+        muVars.objectDREt = cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
+                                  'daughterAsMuon({object_idx}).userFloat("%sCandDREt") : ' +
+                                  '-999.')%(fsr, fsr))
 
 setattr(eleVars, "objectRelPFIsoRhoFSR",
         cms.string(('({object}.chargedHadronIso()' +
