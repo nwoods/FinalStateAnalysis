@@ -501,24 +501,37 @@ if options.hzz:
         )
     process.schedule.append(process.embedFSRInfo)
 
-    # Make a skimmed collection that is a subset of packed PF cands to speed things up
-    process.fsrBaseCands = cms.EDFilter(
-        "CandPtrSelector",
-        src = cms.InputTag("packedPFCandidates"),
-        cut = cms.string("pdgId == 22 & pt > 2. & abs(eta) < 2.6"),
-        )
-    process.fsrBaseCandSeq = cms.Sequence(process.fsrBaseCands)
-    process.fsrBaseCandPath = cms.Path(process.fsrBaseCandSeq)
-    process.schedule.append(process.fsrBaseCandPath)
+#     # Make a skimmed collection that is a subset of packed PF cands to speed things up
+#     process.fsrBaseCands = cms.EDFilter(
+#         "CandPtrSelector",
+#         src = cms.InputTag("packedPFCandidates"),
+#         cut = cms.string("pdgId == 22 & pt > 2. & abs(eta) < 2.6"),
+#         )
+#     process.fsrBaseCandSeq = cms.Sequence(process.fsrBaseCands)
+#     process.fsrBaseCandPath = cms.Path(process.fsrBaseCandSeq)
+#     process.schedule.append(process.fsrBaseCandPath)
 
     # Create and embed yet another experimental FSR collection, this time using
     # deltaR/eT as the photon figure of merit
+#     process.dretPhotonSelection = cms.EDFilter(
+#         "CandPtrSelector",
+#         src = cms.InputTag("fsrBaseCands"), #packedPFCandidates"),
+#         cut = cms.string("pdgId == 22 & pt > 4. & abs(eta) < 2.4"),
+#         )
+#     fs_daughter_inputs['dretfsr'] = 'dretPhotonSelection'
+
     process.dretPhotonSelection = cms.EDFilter(
         "CandPtrSelector",
-        src = cms.InputTag("fsrBaseCands"), #packedPFCandidates"),
+        src = cms.InputTag(fs_daughter_inputs['fsr']), #packedPFCandidates"),
         cut = cms.string("pdgId == 22 & pt > 4. & abs(eta) < 2.4"),
         )
-    fs_daughter_inputs['dretfsr'] = 'dretPhotonSelection'
+
+    process.dretIsoPhotonSelection = cms.EDFilter(
+        "CandPtrSelector",
+        src = cms.InputTag("dretPhotonSelection"),
+        cut = cms.string('(userFloat("fsrPhotonPFIsoChHadPUNoPU03pt02") + '
+                         'userFloat("fsrPhotonPFIsoNHadPhoton03")) / pt < 1.'),
+        )
 
     process.leptonDRETFSREmbedding = cms.EDProducer(
         "MiniAODLeptonDRETFSREmbedder",
@@ -533,6 +546,15 @@ if options.hzz:
     fs_daughter_inputs['muons'] = 'leptonDRETFSREmbedding'
     fs_daughter_inputs['elecrons'] = 'leptonDRETFSREmbedding'
 
+    process.leptonDRETIsoFSREmbedding = process.leptonDRETFSREmbedding.clone(
+        phoSrc = cms.InputTag("dretIsoPhotonSelection"),
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        fsrLabel = cms.string("dretIsoFSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonDRETIsoFSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonDRETIsoFSREmbedding'
+
     process.leptonDRET15FSREmbedding = process.leptonDRETFSREmbedding.clone(
         muSrc = cms.InputTag(fs_daughter_inputs['muons']),
         eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
@@ -542,9 +564,41 @@ if options.hzz:
     fs_daughter_inputs['muons'] = 'leptonDRET15FSREmbedding'
     fs_daughter_inputs['elecrons'] = 'leptonDRET15FSREmbedding'
 
+    process.leptonDRET15IsoFSREmbedding = process.leptonDRETIsoFSREmbedding.clone(
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        etPower = cms.double(1.5),
+        fsrLabel = cms.string("dret15IsoFSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonDRET15IsoFSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonDRET15IsoFSREmbedding'
+
+    process.leptonDRET2FSREmbedding = process.leptonDRETFSREmbedding.clone(
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        etPower = cms.double(1.5),
+        fsrLabel = cms.string("dret2FSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonDRET2FSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonDRET2FSREmbedding'
+
+    process.leptonDRET2IsoFSREmbedding = process.leptonDRETIsoFSREmbedding.clone(
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        etPower = cms.double(1.5),
+        fsrLabel = cms.string("dret2IsoFSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonDRET2IsoFSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonDRET2IsoFSREmbedding'
+
     process.embedDRETFSR = cms.Sequence(process.dretPhotonSelection * 
+                                        process.dretIsoPhotonSelection * 
                                         process.leptonDRETFSREmbedding *
-                                        process.leptonDRET15FSREmbedding)
+                                        process.leptonDRETIsoFSREmbedding *
+                                        process.leptonDRET15FSREmbedding *
+                                        process.leptonDRET15IsoFSREmbedding *
+                                        process.leptonDRET2FSREmbedding *
+                                        process.leptonDRET2IsoFSREmbedding)
     process.dREtFSR = cms.Path(process.embedDRETFSR)
     process.schedule.append(process.dREtFSR)
 
@@ -564,7 +618,16 @@ if options.hzz:
     fs_daughter_inputs['muons'] = 'leptonSquareCutEt4DR03FSREmbedding'
     fs_daughter_inputs['elecrons'] = 'leptonSquareCutEt4DR03FSREmbedding'
 
-    process.leptonSquareCutEt4DR01FSREmbedding = process.leptonDRETFSREmbedding.clone(
+    process.leptonSquareCutEt4DR03IsoFSREmbedding = process.leptonSquareCutEt4DR03FSREmbedding.clone(
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        phoSrc = cms.InputTag("dretIsoPhotonSelection"),
+        fsrLabel = cms.string("et4DR03IsoFSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonSquareCutEt4DR03IsoFSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonSquareCutEt4DR03IsoFSREmbedding'
+
+    process.leptonSquareCutEt4DR01FSREmbedding = process.leptonSquareCutEt4DR03FSREmbedding.clone(
         muSrc = cms.InputTag(fs_daughter_inputs['muons']),
         eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
         dRCut = cms.double(0.1),
@@ -573,8 +636,19 @@ if options.hzz:
     fs_daughter_inputs['muons'] = 'leptonSquareCutEt4DR01FSREmbedding'
     fs_daughter_inputs['elecrons'] = 'leptonSquareCutEt4DR01FSREmbedding'
 
+    process.leptonSquareCutEt4DR01IsoFSREmbedding = process.leptonSquareCutEt4DR03IsoFSREmbedding.clone(
+        muSrc = cms.InputTag(fs_daughter_inputs['muons']),
+        eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+        dRCut = cms.double(0.1),
+        fsrLabel = cms.string("et4DR01IsoFSRCand"),
+        )
+    fs_daughter_inputs['muons'] = 'leptonSquareCutEt4DR01IsoFSREmbedding'
+    fs_daughter_inputs['elecrons'] = 'leptonSquareCutEt4DR01IsoFSREmbedding'
+
     process.embedSquareCutFSR = cms.Sequence(process.leptonSquareCutEt4DR03FSREmbedding *
-                                             process.leptonSquareCutEt4DR03FSREmbedding)
+                                             process.leptonSquareCutEt4DR03IsoFSREmbedding *
+                                             process.leptonSquareCutEt4DR01FSREmbedding *
+                                             process.leptonSquareCutEt4DR01IsoFSREmbedding)
     process.squareCutFSR = cms.Path(process.embedSquareCutFSR)
     process.schedule.append(process.squareCutFSR)
 
