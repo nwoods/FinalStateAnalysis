@@ -13,7 +13,9 @@ zzDiObjVars = PSet()
 eleVars = PSet()
 muVars = PSet()
 
-for fsr in ['dretFSR', 'dret15FSR', 'et4DR03FSR', 'et4DR01FSR']:
+for fsr in ['dretFSR', 'dret15FSR', 'dret2FSR', 'et4DR03FSR', 'et4DR01FSR', 
+            'dretIsoFSR', 'dret15IsoFSR', 'dret2IsoFSR', 'et4DR03IsoFSR', 
+            'et4DR01IsoFSR']:
     brSuffix = fsr.replace("dret", "DREt").replace("et4DR", "Et4DR")
     for maybeDM in ['', "DM"]:
         for fsrVar in ['pt', 'eta', 'phi']:
