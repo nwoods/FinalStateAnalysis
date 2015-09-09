@@ -20,9 +20,11 @@ for fsr in ['dretFSR', 'dret15FSR', 'dret2FSR', 'et4DR03FSR', 'et4DR01FSR',
     for maybeDM in ['', "DM"]:
         for fsrVar in ['pt', 'eta', 'phi']:
             varCap = fsrVar[0].upper()+fsrVar[1:]
-            setattr(zzObjVars, "object%s%s"%(brSuffix, varCap), 
-                    cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
-                                'daughterUserCand({object_idx}, "%sCand").%s() : -999.')%(fsr, fsr, fsrVar)))
+
+            if not maybeDM:
+                setattr(zzObjVars, "object%s%s"%(brSuffix, varCap), 
+                        cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
+                                    'daughterUserCand({object_idx}, "%sCand").%s() : -999.')%(fsr, fsr, fsrVar)))
                 
             setattr(zzDiObjVars, "object1_object2_%s%s%s"%(varCap, brSuffix, maybeDM), 
                     cms.string(('diObjectP4WithUserCands%s({object1_idx}, {object2_idx}, "%sCand").%s')%(maybeDM, fsr, fsrVar))
@@ -38,7 +40,7 @@ for fsr in ['dretFSR', 'dret15FSR', 'dret2FSR', 'et4DR03FSR', 'et4DR01FSR',
                             '-daughterUserCandIsoContribution%s({object_idx}, "%sCand")' +
                             '-{object}.userFloat("rhoCSA14")*{object}.userFloat("EffectiveArea_HZZ4l2015")))' +
                             '/{object}.pt()')%(maybeDM, fsr))
-                ),
+                )
         
         setattr(muVars, "objectRelPFIsoDB%s%s"%(brSuffix, maybeDM),
                 cms.string(('({object}.chargedHadronIso()' +
@@ -56,13 +58,24 @@ for fsr in ['dretFSR', 'dret15FSR', 'dret2FSR', 'et4DR03FSR', 'et4DR01FSR',
         setattr(zzEvVars, 'Mass%s%s'%(brSuffix, maybeDM),
                 cms.string('p4WithUserCands%s("%sCand").M'%(maybeDM, fsr)))
         
-        eleVars.objectDREt = cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
-                                         'daughterAsElectron({object_idx}).userFloat("%sDREt") : ' +
-                                         '-999.')%(fsr, fsr))
+    if 'dret' in fsr:
+        setattr(eleVars, "object%sDREt"%brSuffix,
+                cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
+                            'daughterAsElectron({object_idx}).userFloat("%sCandDREt") : ' +
+                            '-999.')%(fsr, fsr))
+                )
         
-        muVars.objectDREt = cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
-                                  'daughterAsMuon({object_idx}).userFloat("%sCandDREt") : ' +
-                                  '-999.')%(fsr, fsr))
+        setattr(muVars, "object%sDREt"%brSuffix,
+                cms.string(('? daughterHasUserCand({object_idx}, "%sCand") ? ' +
+                            'daughterAsMuon({object_idx}).userFloat("%sCandDREt") : ' +
+                            '-999.')%(fsr, fsr))
+                )
+
+    setattr(zzObjVars, "object%sImprovesZ"%brSuffix,
+            cms.string('? fsrImprovesZ({object_idx}, "%sCand") ? 1. : 0.'%fsr)
+            )
+                
+       
 
 setattr(eleVars, "objectRelPFIsoRhoFSR",
         cms.string(('({object}.chargedHadronIso()' +
@@ -71,7 +84,7 @@ setattr(eleVars, "objectRelPFIsoRhoFSR",
                     '-allFSRIsoContribution({object_idx}, "FSRCand")' +
                     '-{object}.userFloat("rhoCSA14")*{object}.userFloat("EffectiveArea_HZZ4l2015")))' +
                     '/{object}.pt()'))
-        ),
+        )
 
 setattr(muVars, "objectRelPFIsoDBFSR",
         cms.string(('({object}.chargedHadronIso()' +
