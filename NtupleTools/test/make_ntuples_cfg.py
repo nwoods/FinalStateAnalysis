@@ -523,7 +523,7 @@ if options.hzz:
     process.dretPhotonSelection = cms.EDFilter(
         "CandPtrSelector",
         src = cms.InputTag(fs_daughter_inputs['fsr']), #packedPFCandidates"),
-        cut = cms.string("pdgId == 22 & pt > 4. & abs(eta) < 2.4"),
+        cut = cms.string("pdgId == 22 & pt > 2. & abs(eta) < 2.4"),
         )
 
     process.dretIsoPhotonSelection = cms.EDFilter(
@@ -652,6 +652,31 @@ if options.hzz:
     process.squareCutFSR = cms.Path(process.embedSquareCutFSR)
     process.schedule.append(process.squareCutFSR)
 
+
+    fsrLabels = ["FSRCand%d"%i for i in xrange(4)]
+    fsrLabels += ["%s%sFSRCand"%(fsrType, maybeIso) for fsrType in ['dret', 'dret15', 'dret2', 'et4DR03', 'et4DR01'] for maybeIso in ['',"Iso"]]
+    if options.isMC:
+        process.fsrGenMatching = cms.EDProducer(
+            "MiniAODFSRGenMatchProducer",
+            maxDR = cms.double(0.15),
+            ancestorId = cms.uint32(25), # higgs
+            fsrLabels = cms.vstring(fsrLabels),
+            eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
+            mSrc = cms.InputTag(fs_daughter_inputs['muons']),
+            genSrc = cms.InputTag('packedGenParticles'),
+            eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
+            mSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
+            phoSelection = cms.string(''),
+            eGenSelection = cms.string('pt > 7. && abs(eta) < 2.5'),
+            mGenSelection = cms.string('pt > 5. && abs(eta) < 2.4'),
+            phoGenSelection = cms.string('pt > 2. && abs(eta) < 2.4'),
+            )
+        fs_daughter_inputs['electrons'] = 'fsrGenMatching'
+        fs_daughter_inputs['muons'] = 'fsrGenMatching'
+        
+        process.fsrGenMatch = cms.Sequence(process.fsrGenMatching)
+        process.matchGenFSR = cms.Path(process.fsrGenMatch)
+        process.schedule.append(process.matchGenFSR)
 
 
 # Make a list of collections to save (in case we're saving 

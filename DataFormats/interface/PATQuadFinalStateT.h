@@ -81,6 +81,34 @@ class PATQuadFinalStateT : public PATFinalState {
         return reco::CandidatePtr();
     }
 
+    virtual float daughterUserFloatUnsafe(size_t i,
+        const std::string& tag) const {
+      if (i == 0)
+        return p1_->userFloat(tag);
+      else if (i == 1)
+        return p2_->userFloat(tag);
+      else if (i == 2)
+        return p3_->userFloat(tag);
+      else if (i == 3)
+        return p4_->userFloat(tag);
+      else
+        return 0.;
+    }
+
+    virtual int daughterUserIntUnsafe(size_t i,
+        const std::string& tag) const {
+      if (i == 0)
+        return p1_->userInt(tag);
+      else if (i == 1)
+        return p2_->userInt(tag);
+      else if (i == 2)
+        return p3_->userInt(tag);
+      else if (i == 3)
+        return p4_->userInt(tag);
+      else
+        return 0;
+    }
+
     virtual const reco::CandidatePtrVector& daughterOverlaps(
         size_t i, const std::string& label) const {
       if (i == 0)
@@ -127,6 +155,28 @@ class PATQuadFinalStateT : public PATFinalState {
     const inline size_t get4LPartner(size_t i) const
     {
       return i + (i%2 ? -1 : 1);
+    }
+
+    // For legacy FSR. Returns 0 if false, 1 if true.
+    const float fsrGenMatched(size_t i, size_t j, const std::string& fsrLabel) const
+    {
+      const reco::CandidatePtr fsr = bestFSROfZ(i, j, fsrLabel);
+
+      if(!fsr)
+        return 0.;
+
+      for(int iFSR = 0; iFSR < daughterUserIntUnsafe(i, "n"+fsrLabel); ++iFSR)
+        {
+          if(daughterUserCand(i, fsrLabel+std::to_string(iFSR)) == fsr)
+            return daughterUserFloatUnsafe(i, fsrLabel+std::to_string(iFSR)+"GenMatch");
+        }
+      for(int iFSR = 0; iFSR < daughterUserIntUnsafe(j, "n"+fsrLabel); ++iFSR)
+        {
+          if(daughterUserCand(j, fsrLabel+std::to_string(iFSR)) == fsr)
+            return daughterUserFloatUnsafe(j, fsrLabel+std::to_string(iFSR)+"GenMatch");
+        }
+
+      return 0.; // shouldn't happen
     }
 
     // Get the FSR candidate that moves the invariant mass of the lepton pair closest to nominal Z mass
