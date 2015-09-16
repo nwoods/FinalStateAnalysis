@@ -75,6 +75,10 @@ for fsr in ['dretFSR', 'dret15FSR', 'dret2FSR', 'et4DR03FSR', 'et4DR01FSR',
             cms.string('? fsrImprovesZ({object_idx}, "%sCand") ? 1. : 0.'%fsr)
             )
 
+    setattr(zzObjVars, "object%sDR"%brSuffix,
+            cms.string('daughterUserCandDR({object_idx}, "%sCand")'%fsr)
+            )
+
     setattr(eleVars, "object%sGenMatch"%brSuffix,
             cms.string(('? daughterAsElectron({object_idx}).hasUserFloat("%sCandGenMatch") ? ' +
                         'daughterAsElectron({object_idx}).userFloat("%sCandGenMatch") : 0.')%(fsr, fsr))
@@ -87,6 +91,8 @@ for fsr in ['dretFSR', 'dret15FSR', 'dret2FSR', 'et4DR03FSR', 'et4DR01FSR',
        
 
 zzObjVars.objectHasGenFSR = cms.string('{object}.userFloat("hasGenFSR")')
+zzObjVars.objectGenFSRPt = cms.string('? {object}.userFloat("hasGenFSR") > 0.5 ? {object}.userFloat("genFSRPt") : -999.')
+zzObjVars.objectGenFSRDR = cms.string('? {object}.userFloat("hasGenFSR") > 0.5 ? {object}.userFloat("genFSRDR") : -999.')
 
 setattr(eleVars, "objectRelPFIsoRhoFSR",
         cms.string(('({object}.chargedHadronIso()' +
@@ -124,7 +130,10 @@ zzDiObjVars.object1_object2_FSREta   = cms.string('? bestFSROfZ({object1_idx}, {
                                                   'bestFSROfZ({object1_idx}, {object2_idx}, "FSRCand").eta() : -999.')
 zzDiObjVars.object1_object2_FSRPhi   = cms.string('? bestFSROfZ({object1_idx}, {object2_idx}, "FSRCand").isNonnull() ? '
                                                   'bestFSROfZ({object1_idx}, {object2_idx}, "FSRCand").phi() : -999.')
+zzDiObjVars.object1_object2_FSRDR    = cms.string('fsrDR({object1_idx}, {object2_idx}, "FSRCand")')
 zzDiObjVars.object1_object2_FSRGenMatch = cms.string('fsrGenMatched({object1_idx}, {object2_idx}, "FSRCand")')
+zzDiObjVars.object1_object2_FSRGenPt = cms.string('fsrGenVar({object1_idx}, {object2_idx}, "Pt", "FSRCand")')
+zzDiObjVars.object1_object2_FSRGenDR = cms.string('fsrGenVar({object1_idx}, {object2_idx}, "DR", "FSRCand")')
 
 parameters = {
     # selections on all objects whether they're included in final states or not, done immediately after necessary variables are embedded

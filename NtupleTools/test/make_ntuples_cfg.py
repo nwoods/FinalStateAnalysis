@@ -664,6 +664,7 @@ if options.hzz:
             eSrc = cms.InputTag(fs_daughter_inputs['electrons']),
             mSrc = cms.InputTag(fs_daughter_inputs['muons']),
             genSrc = cms.InputTag('packedGenParticles'),
+            phoSrc = cms.InputTag("dretPhotonSelection"),
             eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
             mSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
             phoSelection = cms.string(''),

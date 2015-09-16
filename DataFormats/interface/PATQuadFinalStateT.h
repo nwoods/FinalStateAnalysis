@@ -137,6 +137,29 @@ class PATQuadFinalStateT : public PATFinalState {
       return PATFinalStateProxy(new PATMultiCandFinalState(output, evt()));
     }
 
+    // delta R between candidate and legacy FSR photon. 
+    // -999. if there is no fsr cand
+    float fsrDR(const size_t i, const size_t j, const std::string& fsrLabel) const
+    {
+      const reco::CandidatePtr fsr = bestFSROfZ(i, j, fsrLabel);
+
+      if(!fsr)
+        return -999.;
+
+      for(int iFSR = 0; iFSR < daughterUserIntUnsafe(i, "n"+fsrLabel); ++iFSR)
+        {
+          if(daughterUserCand(i, fsrLabel+std::to_string(iFSR)) == fsr)
+            return reco::deltaR(daughter(i)->p4(), fsr->p4());
+        }
+      for(int iFSR = 0; iFSR < daughterUserIntUnsafe(j, "n"+fsrLabel); ++iFSR)
+        {
+          if(daughterUserCand(j, fsrLabel+std::to_string(iFSR)) == fsr)
+            return reco::deltaR(daughter(j)->p4(), fsr->p4());
+        }
+
+      return -999.; // shouldn't happen
+    }
+
     /// quad candidate p4 w/ fsr
     LorentzVector p4fsr(const std::string& fsrLabel="") const
     {
@@ -174,6 +197,29 @@ class PATQuadFinalStateT : public PATFinalState {
         {
           if(daughterUserCand(j, fsrLabel+std::to_string(iFSR)) == fsr)
             return daughterUserFloatUnsafe(j, fsrLabel+std::to_string(iFSR)+"GenMatch");
+        }
+
+      return 0.; // shouldn't happen
+    }
+
+    // For legacy FSR. Returns -999 if there's no FSR candidate
+    const float fsrGenVar(size_t i, size_t j, const std::string& var,
+                           const std::string& fsrLabel) const
+    {
+      const reco::CandidatePtr fsr = bestFSROfZ(i, j, fsrLabel);
+
+      if(!fsr)
+        return -999.;
+
+      for(int iFSR = 0; iFSR < daughterUserIntUnsafe(i, "n"+fsrLabel); ++iFSR)
+        {
+          if(daughterUserCand(i, fsrLabel+std::to_string(iFSR)) == fsr)
+            return daughterUserFloatUnsafe(i, "genFSR"+var);
+        }
+      for(int iFSR = 0; iFSR < daughterUserIntUnsafe(j, "n"+fsrLabel); ++iFSR)
+        {
+          if(daughterUserCand(j, fsrLabel+std::to_string(iFSR)) == fsr)
+            return daughterUserFloatUnsafe(j, "genFSR"+var);
         }
 
       return 0.; // shouldn't happen

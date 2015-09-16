@@ -1120,6 +1120,18 @@ const float PATFinalState::ptOfDaughterUserCand(const size_t i, const std::strin
 }
 
 
+const float PATFinalState::daughterUserCandDR(const size_t i, const std::string& label) const
+{
+  if(daughterHasUserCand(i, label))
+    {
+      reco::CandidatePtr uCand = daughterUserCand(i, label);
+      return reco::deltaR(uCand->p4(), daughter(i)->p4());
+    }
+
+  return -999.;
+}
+
+
 const float PATFinalState::daughterUserCandIsoContribution(const size_t i, const std::string& label) const
 {
   if(daughterHasUserCand(i, label))
