@@ -541,6 +541,7 @@ if options.hzz:
         phoSelection = cms.string(""),
         eSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
         muSelection = cms.string('userFloat("%s") > 0.5'%idCheatLabel),
+        maxDR = cms.double(1.),
         fsrLabel = cms.string("dretFSRCand"),
         )
     fs_daughter_inputs['muons'] = 'leptonDRETFSREmbedding'
