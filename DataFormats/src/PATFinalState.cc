@@ -1108,6 +1108,16 @@ PATFinalState::LorentzVector PATFinalState::p4WithUserCands(const std::string& l
 }
 
 
+PATFinalState::LorentzVector PATFinalState::p4WithOneUserCand(const size_t i, const std::string& label) const
+{
+  LorentzVector out = p4();
+  if(daughterHasUserCand(i, label))
+    out += daughterUserCand(i, label)->p4();
+
+  return out;
+}
+
+
 const float PATFinalState::ptOfDaughterUserCand(const size_t i, const std::string& label) const
 {
   if(daughterHasUserCand(i, label))

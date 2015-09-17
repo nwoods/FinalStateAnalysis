@@ -353,6 +353,9 @@ class PATFinalState : public pat::PATObject<reco::LeafCandidate> {
     // Get the final state's P4 with a usercand included from all daughters that have it
     LorentzVector p4WithUserCands(const std::string& label) const;
 
+    // Get the final state's P4 with a usercand included from daughter i if it has one
+    LorentzVector p4WithOneUserCand(const size_t i, const std::string& label) const;
+
     // Get the pt of a daughter's userCand, or 0 if it doesn't have one
     const float ptOfDaughterUserCand(const size_t i, const std::string& label) const;
 

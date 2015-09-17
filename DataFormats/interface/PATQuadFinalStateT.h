@@ -160,6 +160,24 @@ class PATQuadFinalStateT : public PATFinalState {
       return -999.; // shouldn't happen
     }
 
+    // 1 if there is a legacy FSR photon coming from this daughter, otherwise 0
+    float hasLegacyFSR(const size_t i, const std::string& fsrLabel) const
+    {
+      const size_t j = get4LPartner(i);
+      const reco::CandidatePtr fsr = bestFSROfZ(i, j, fsrLabel);
+
+      if(!fsr)
+        return 0.;
+
+      for(int iFSR = 0; iFSR < daughterUserIntUnsafe(i, "n"+fsrLabel); ++iFSR)
+        {
+          if(daughterUserCand(i, fsrLabel+std::to_string(iFSR)) == fsr)
+            return 1.;
+        }
+
+      return 0.;
+    }
+
     /// quad candidate p4 w/ fsr
     LorentzVector p4fsr(const std::string& fsrLabel="") const
     {
