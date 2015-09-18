@@ -167,7 +167,7 @@ P& MiniAODFSRGenMatchProducer::embedGenFSRMatch(P& lep,
           if(genFSR.second.at(i)->pt() > genFSR.second.at(indOfBest)->pt())
             indOfBest = i;
         }
-      lep.addUserFloat("genFSRPt", genFSR.second.at(indOfBest)->pt());
+      lep.addUserCand("genFSR", genFSR.second.at(indOfBest));
       lep.addUserFloat("genFSRDR", reco::deltaR(genFSR.first->p4(),
                                                 genFSR.second.at(indOfBest)->p4()));
     }

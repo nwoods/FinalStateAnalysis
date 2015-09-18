@@ -95,7 +95,8 @@ for fsr in ['dretFSR', 'dret15FSR', 'dret2FSR', 'et4DR03FSR', 'et4DR01FSR',
        
 
 zzObjVars.objectHasGenFSR = cms.string('{object}.userFloat("hasGenFSR")')
-zzObjVars.objectGenFSRPt = cms.string('? {object}.userFloat("hasGenFSR") > 0.5 ? {object}.userFloat("genFSRPt") : -999.')
+zzObjVars.objectGenFSRPt = cms.string('? {object}.userFloat("hasGenFSR") > 0.5 ? daughterUserCand({object_idx}, "genFSR").pt : -999.')
+zzObjVars.objectGenFSRMassChange = cms.string('p4WithOneUserCand({object_idx}, "genFSR").M - mass')
 zzObjVars.objectGenFSRDR = cms.string('? {object}.userFloat("hasGenFSR") > 0.5 ? {object}.userFloat("genFSRDR") : -999.')
 
 setattr(eleVars, "objectRelPFIsoRhoFSR",
