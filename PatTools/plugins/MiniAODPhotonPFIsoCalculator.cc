@@ -4,6 +4,7 @@
 ///   Defines plugin PhotonPFIsoCalculator                                                                              ///
 ///   Copied from https://github.com/VBF-HZZ/UFHZZAnalysisRun2/blob/csa14/FSRPhotons/plugins/PhotonPFIsoCalculator.cc   ///
 ///       I take no credit                                                                                              ///
+///           ... except for the variable caching which gives a giant speedup. I take credit for that.                  ///
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <memory>
@@ -77,35 +78,54 @@ void PhotonPFIsoCalculator::produce(edm::Event& iEvent, const edm::EventSetup& i
   edm::ValueMap<float>::Filler isoF(*isoM);
 
   if (debug_) std::cout << "Run " << iEvent.id().run() << ", Event " << iEvent.id().event() << std::endl;
+
+  // caching for hilarious speedup
+  std::vector<double> pfPt = std::vector<double>(pfcands->size());
+  std::vector<double> pfEta = std::vector<double>(pfcands->size());
+  std::vector<double> pfPhi = std::vector<double>(pfcands->size());
+  for(size_t iPF = 0; iPF < pfcands->size(); ++iPF)
+    {
+      pfPt.at(iPF) = pfcands->at(iPF).pt();
+      pfEta.at(iPF) = pfcands->at(iPF).eta();
+      pfPhi.at(iPF) = pfcands->at(iPF).phi();
+    }
+
   for( reco::CandidateView::const_iterator ph = photons->begin(); ph != photons->end(); ++ph )
   {
-    if (debug_) std::cout << " Photon with pt = " << ph->pt() << ", eta = " << ph->eta() << ", phi = " << ph->phi() << std::endl;
+    // more caching
+    double phEta = ph->eta();
+    double phPhi = ph->phi();
+    bool phInEndcap = endcapDefinition_(*ph);
+
+    if (debug_) std::cout << " Photon with pt = " << ph->pt() << ", eta = " << phEta << ", phi = " << phPhi << std::endl;
 
     Double_t ptSum =0.;  
     math::XYZVector isoAngleSum;
     std::vector<math::XYZVector> coneParticles;
+
+    size_t iPF = 0;
     for( pat::PackedCandidateCollection::const_iterator pf = pfcands->begin(); pf!=pfcands->end(); ++pf )
-    {   
-      double dr = deltaR(ph->p4(), pf->p4()) ;
+    {
+      double dr = deltaR(phEta, phPhi, pfEta[iPF], pfPhi[iPF]) ;
       if (dr>=deltaR_ || dr<deltaRself_ ) continue;
       if (deltaZ_>0 && fabs(pf->vz() - ph->vz()) > deltaZ_) continue;
       // dR Veto for Gamma: no-one in EB, dR > 0.08 in EE
-      if (vetoConeEndcaps_ > 0 && endcapDefinition_(*ph) && dr < vetoConeEndcaps_) continue;
+      if (vetoConeEndcaps_ > 0 && phInEndcap && dr < vetoConeEndcaps_) continue;
 
       if (!pfSelection_(*pf)) continue; 
       if (debug_) std::cout << "   pfCandidate of pdgId " << pf->pdgId() 
-          << ", pt = " << pf->pt() << ", dr = " << dr << ", dz = " << (pf->vz()-ph->vz()) 
+          << ", pt = " << pfPt[iPF] << ", dr = " << dr << ", dz = " << (pf->vz()-ph->vz()) 
           << " is in cone... " << " from PV? " << pf->fromPV() << std::endl;
       if (debug_) std::cout << "          ...and passes all vetos, so it's added to the sum." << std::endl;
 
       // scalar sum
-      ptSum += pf->pt();
+      ptSum += pfPt[iPF];
 
       if (directional_)
       {
         // directional sum
-        math::XYZVector transverse(pf->eta()-ph->eta(), reco::deltaPhi(pf->phi(),ph->phi()), 0);
-        transverse *= pf->pt() / transverse.rho();
+        math::XYZVector transverse(pfEta[iPF]-phEta, reco::deltaPhi(pfPhi[iPF],phPhi), 0);
+        transverse *= pfPt[iPF] / transverse.rho();
         if (transverse.rho() > 0) 
         {
           isoAngleSum += transverse;
@@ -127,6 +147,8 @@ void PhotonPFIsoCalculator::produce(edm::Event& iEvent, const edm::EventSetup& i
     {
       isoV.push_back(ptSum);
     }
+
+    iPF++;
   }
 
   isoF.insert(photons,isoV.begin(),isoV.end());
